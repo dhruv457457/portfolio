@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en" data-theme="meadow">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dhruv Pancholi · Full Stack Developer</title>
+  <meta name="description" content="Dhruv Pancholi, a backend-focused full-stack developer who ships with AI.">
+  <meta name="theme-color" content="#f5f2ea">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <!-- Link previews (LinkedIn, X, WhatsApp, Slack).
+       Once the site has its domain, make og:image and og:url full addresses, e.g.
+       https://your-domain/assets/og.jpg: LinkedIn and X ignore relative paths. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Dhruv Pancholi · Full Stack Developer">
+  <meta property="og:description" content="Backend-focused, ships with AI, needs minimum hand-holding. 10+ hackathon wins.">
+  <meta property="og:image" content="assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="A pixel-art valley at sunset with a Jaipur hill fort">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@dhruvpanch0li">
+  <meta name="twitter:title" content="Dhruv Pancholi · Full Stack Developer">
+  <meta name="twitter:description" content="Backend-focused, ships with AI, needs minimum hand-holding. 10+ hackathon wins.">
+  <meta name="twitter:image" content="assets/og.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Silkscreen&family=VT323&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ============ Hero ============ -->
+  <header class="hero" id="home">
+    <div class="hero-art" id="hero-art"></div>
+    <canvas class="pollen" id="pollen" aria-hidden="true"></canvas>
+    <div class="hero-inner">
+      <h1 class="hero-title">Hi! I'm <span id="hero-name"></span></h1>
+      <p class="hero-sub" id="hero-sub"></p>
+      <p class="trail-label"><span></span>pick a trail<span></span></p>
+      <nav class="trails" aria-label="Sections">
+        <a class="trail" href="#workshop"><em>01</em><strong>The Workshop</strong><i aria-hidden="true">→</i></a>
+        <a class="trail" href="#lantern"><em>02</em><strong>Minimum Hand-Holding</strong><small>for HR, founders &amp; CTOs</small><i aria-hidden="true">→</i></a>
+        <a class="trail" href="#trophies"><em>03</em><strong>The Trophy Room</strong><small>don't skip this one</small><i aria-hidden="true">→</i></a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ Projects ============ -->
+    <section class="section" id="workshop">
+      <div class="section-head">
+        <div><h2>The <span>Workshop</span></h2><p>Things I've built and shipped, most with real money on the line.</p></div>
+        <img class="pixel-icon" src="assets/icon-toolbox.png" alt="" width="96" height="96">
+      </div>
+      <div class="projects" id="projects"></div>
+    </section>
+
+    <!-- ============ Why me: minimum hand-holding ============ -->
+    <section class="section alt" id="lantern">
+      <div class="section-head flip">
+        <div><h2>Minimum <span>Hand-Holding</span></h2><p>For HR, founders and CTOs: what working with me looks like.</p></div>
+        <img class="pixel-icon" src="assets/icon-lantern.png" alt="" width="96" height="96">
+      </div>
+
+      <!-- An RPG-style conversation: pick who you are, I answer -->
+      <div class="rpg reveal" id="rpg">
+        <div class="rpg-portrait"><img src="assets/me-portrait.png" alt="Pixel-art Dhruv, smiling" width="360" height="360"></div>
+        <div class="rpg-box" id="rpg-box">
+          <span class="rpg-name">Dhruv</span>
+          <!-- The visible text types out letter by letter, so screen readers skip it
+               and hear the finished line once, from the hidden copy below -->
+          <p class="rpg-text" id="rpg-text" aria-hidden="true"></p>
+          <p class="sr-only" id="rpg-said" aria-live="polite"></p>
+          <div class="rpg-choices" id="rpg-choices" role="group" aria-label="Who's asking?"></div>
+          <span class="rpg-next" aria-hidden="true">▼</span>
+        </div>
+      </div>
+
+      <h3 class="sub-head reveal">How a ticket travels to me</h3>
+      <div class="walk reveal" id="trail">
+        <div class="walk-path">
+          <div class="trail-line"><span class="trail-fill"></span></div>
+          <img class="trail-lantern" src="assets/icon-lantern.png" alt="" width="40" height="62">
+          <ol class="workflow" id="workflow"></ol>
+        </div>
+        <div class="walk-end">
+          <span class="walk-say">shipped ✓<small>what's next?</small></span>
+          <img src="assets/me-full.png" alt="Pixel-art Dhruv waving" width="148" height="320">
+        </div>
+      </div>
+
+      <h3 class="sub-head reveal">Inventory</h3>
+      <div class="inventory card reveal">
+        <div class="inv-tabs" id="inv-tabs" role="tablist" aria-label="Skill groups"></div>
+        <ul class="inv-grid" id="inv-grid" role="tabpanel"></ul>
+      </div>
+    </section>
+
+    <!-- ============ Experience ============ -->
+    <section class="section" id="journey">
+      <div class="section-head">
+        <div><h2>The <span>Journey</span></h2><p>Where I've worked and what I left behind.</p></div>
+        <img class="pixel-icon" src="assets/icon-map.png" alt="" width="96" height="96">
+      </div>
+      <div class="jr" id="jr">
+        <div class="jr-sticky">
+          <div class="jr-rail"><span class="jr-rail-fill"></span></div>
+          <div class="jr-steps" id="jr-steps"></div>
+          <div class="jr-panels" id="jr-panels"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Achievements ============ -->
+    <section class="section alt" id="trophies">
+      <div class="section-head flip">
+        <div><h2>The <span>Trophy Room</span></h2><p>Built in days, judged by strangers, paid in prizes.</p></div>
+        <img class="pixel-icon" src="assets/icon-trophy.png" alt="" width="96" height="96">
+      </div>
+
+      <div class="loot reveal" id="loot">
+        <div class="loot-main">
+          <small>prize money won</small>
+          <strong>$<span id="loot-total">0</span>+</strong>
+        </div>
+        <div class="loot-side">
+          <div><strong><span id="loot-wins">0</span>+</strong><small>hackathon wins</small></div>
+          <div><strong id="loot-shown">0</strong><small>on this shelf</small></div>
+        </div>
+      </div>
+
+      <ul class="trophies" id="trophy-list"></ul>
+    </section>
+
+    <!-- ============ GitHub ============ -->
+    <section class="section" id="garden">
+      <div class="section-head">
+        <div><h2>The Commit <span>Garden</span></h2><p>A year of small things growing on GitHub.</p></div>
+        <img class="pixel-icon" src="assets/icon-sprout.png" alt="" width="96" height="96">
+      </div>
+      <div class="garden card">
+        <div class="garden-top">
+          <span>Contributions</span>
+          <a id="gh-handle" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="garden-scroll">
+          <div class="garden-bed">
+            <!-- one little plant per week, as tall as that week's commits -->
+            <div class="garden-plants" id="garden-plants" aria-hidden="true"></div>
+            <div class="garden-grid" id="garden-grid" role="img" aria-label="GitHub contribution graph"></div>
+          </div>
+        </div>
+        <div class="garden-foot">
+          <span id="garden-total">loading the garden…</span>
+          <span class="legend">less <i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i> more</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Contact ============ -->
+    <section class="section alt" id="campfire">
+      <div class="section-head flip">
+        <div><h2>Sit by the <span>Campfire</span></h2><p>Have a task and basic clarity? That's all I need. Say hi.</p></div>
+        <img class="pixel-icon" src="assets/icon-campfire.png" alt="" width="96" height="96">
+      </div>
+      <div class="camp" id="camp">
+        <div class="camp-ground" aria-hidden="true"></div>
+        <div class="fire" aria-hidden="true">
+          <span class="fire-glow"></span>
+          <img src="assets/icon-campfire.png" alt="">
+          <span class="ember"></span><span class="ember"></span><span class="ember"></span><span class="ember"></span>
+        </div>
+      </div>
+      <p class="camp-mail">or just write to <a id="mail-link"></a></p>
+    </section>
+
+    <footer class="footer">made with chai in Jaipur · art and sounds made for this site</footer>
+  </main>
+
+  <!-- ============ Floating pill nav ============ -->
+  <nav class="dock" aria-label="Quick navigation">
+    <a href="#home" data-sec="home">Home</a>
+    <a href="#workshop" data-sec="workshop">Work</a>
+    <a href="#lantern" data-sec="lantern">Why me</a>
+    <a href="#journey" data-sec="journey">Journey</a>
+    <a href="#trophies" data-sec="trophies">Trophies</a>
+    <a href="#campfire" data-sec="campfire">Say hi</a>
+    <span class="dock-sep"></span>
+    <button class="dock-btn theme" id="theme-btn" type="button" aria-label="Change colours"><span></span></button>
+    <button class="dock-btn music" id="music-btn" type="button" aria-pressed="true" aria-label="Mute background sound">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/>
+        <path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/>
+        <path class="mute" d="M16 9l6 6M22 9l-6 6"/>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Video player for project demos -->
+  <dialog class="player" id="player" aria-label="Project demo video">
+    <div class="player-frame"><iframe id="player-iframe" title="Project demo" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+    <form method="dialog"><button class="player-close" aria-label="Close video">close ✕</button></form>
+  </dialog>
+
+  <script src="data.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
