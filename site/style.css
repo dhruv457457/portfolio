@@ -230,12 +230,21 @@ main { position: relative; }
 
 /* ---------- Projects ---------- */
 /* the Workshop: a pinned stage, and one row of projects that slides along as you scroll */
+#workshop { overflow-x: clip; } /* the row runs edge to edge; clip (not hidden) so the stage can still pin */
 .ws-pin { position: relative; }
 .ws-stage { position: sticky; top: 3vh; }
 .ws-stage .section-head { margin-bottom: 20px; }
-.ws-window { overflow: hidden; margin: 0 -8px; padding: 6px 8px 12px; } /* room for the cards' offset shadows */
-.projects { display: flex; align-items: stretch; gap: 22px; width: max-content; will-change: transform; }
-.projects > .project { flex: none; width: min(400px, 80vw); }
+/* the row spans the whole screen, fading out at both edges; it starts and ends in line with the heading */
+.ws-window {
+  overflow: hidden;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: 6px 0 14px; /* room for the cards' offset shadows */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+}
+.projects { display: flex; align-items: stretch; gap: 22px; width: max-content; padding: 0 var(--lead, 24px); will-change: transform; }
+.projects > .project { flex: none; width: clamp(300px, 23vw, 430px); }
 .projects .thumb { width: 100%; } /* a button only shrink-wraps its content otherwise */
 .projects > .project.extra .window-bar { background: #2a2418; } /* side quests: a warmer bar */
 .side-quests {
@@ -261,6 +270,15 @@ main { position: relative; }
 .ws-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
 .ws-hint { transition: opacity .4s; }
 .ws-stage.ended .ws-hint { opacity: 0; }
+/* a short laptop screen: drop the tagline and pin higher, so the progress bar clears the dock */
+@media (min-width: 760px) and (max-height: 820px) {
+  .ws-stage { top: 10px; }
+  .ws-stage .section-head p { display: none; }
+  .ws-stage .section-head { margin-bottom: 12px; }
+  .projects .thumb { aspect-ratio: 2 / 1; } /* flatter covers, so the row clears the dock */
+  .projects .project-body { padding-top: 14px; padding-bottom: 14px; }
+  .projects .project-head { margin-bottom: 8px; }
+}
 /* a card with no capture yet: its icon on a dark screen */
 .thumb .screen { display: grid; place-content: center; justify-items: center; gap: 10px; width: 100%; aspect-ratio: 16 / 9; background: radial-gradient(circle at 50% 40%, #2c3446, #161a24 70%); color: #c9cfdb; font: 400 1.4rem "VT323", var(--pixel), monospace; }
 .thumb .screen svg { width: 72px; height: 72px; }
@@ -372,6 +390,7 @@ main { position: relative; }
   overflow: visible;
 }
 .pm.project { max-height: calc(100vh - 28px); overflow: auto; background: var(--card); cursor: auto; }
+.pm.project > * { flex-shrink: 0; } /* a long write-up scrolls; it never squashes the video */
 .pm.project:hover { transform: none; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--ink) 18%, transparent), 5px 5px 0 color-mix(in srgb, var(--ink) 16%, transparent); }
 .pm .window-bar form { margin: 0 0 0 6px; }
 .pm-x { padding: 1px 7px; border: 2px solid #3a4256; border-radius: 4px; background: none; color: #c9cfdb; font: 400 1.05rem/1 "VT323", var(--pixel), monospace; cursor: pointer; }

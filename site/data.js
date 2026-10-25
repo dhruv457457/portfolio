@@ -145,13 +145,23 @@ window.SITE = {
     },
     {
       "name": "PayPact",
-      "kind": "Hackathon build on Solana",
+      "kind": "Group payments on Solana",
       "chips": [
-        "Solana",
-        "Two prize tracks"
+        "Solana Pay QR",
+        "Payment listener",
+        "Web3Auth sign-in"
       ],
-      "text": "Placed in two tracks at the MetaMask × HackQuest DevCook: 3rd overall and 1st in Chain for Good.",
-      "extra": true
+      "text": "Split a shared bill as a pact: everyone pays by scanning a Solana Pay QR code, and the organiser sees who has paid, live. Placed 3rd overall and 1st in Chain for Good at the MetaMask × HackQuest DevCook.",
+      "extra": true,
+      "live": "https://paypact.vercel.app",
+      "code": "https://github.com/dhruv457457/paypact",
+      "cover": "assets/cover-paypact.webp",
+      "details": [
+        "Sign in with a social account: Web3Auth creates a self-custodial Solana wallet behind the scenes.",
+        "Each pact gets a Solana Pay link with the pact's ID in the transaction memo, shown as a QR code.",
+        "A backend listener watches the organiser's wallet and matches each incoming payment to its pact by that memo.",
+        "A matched payment flips that person from pending to paid in Firestore, and the organiser's dashboard updates live."
+      ]
     },
     {
       "name": "RebalanceVault",
@@ -163,7 +173,17 @@ window.SITE = {
       ],
       "text": "An upgradeable vault on the Diamond pattern that keeps its target allocations by itself, trading through real Uniswap V3 liquidity at Chainlink oracle prices.",
       "code": "https://github.com/dhruv457457/rebalance-vault",
-      "extra": true
+      "extra": true,
+      "live": "https://drift-protocol.vercel.app",
+      "cover": "assets/cover-rebalancevault.webp",
+      "details": [
+        "Built on the EIP-2535 Diamond pattern: 11 facets share one storage struct, so strategies, swap adapters and fee logic can be replaced without moving anyone's funds.",
+        "Chainlink Automation checks the vault and rebalances only when the active strategy says the ETH/USDC mix has drifted past its threshold.",
+        "Every rebalance passes four guards first: a circuit breaker, a volatility check, a rate limit per block window, and a cap on swap size.",
+        "Prices come from Chainlink with a one-hour staleness check; swaps go through Uniswap V3 with slippage limits, and the slippage actually lost is recorded.",
+        "Idle USDC earns yield in Aave V3 between rebalances.",
+        "Fees: a management fee that accrues per second, and a performance fee charged only above the high-water mark."
+      ]
     }
   ],
   "journey": [

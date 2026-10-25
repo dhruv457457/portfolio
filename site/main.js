@@ -151,8 +151,10 @@ const wsPin = $("#ws-pin"), wsStage = $("#ws-stage"), wsWindow = $(".ws-window")
 const WS_K = 0.6; // px of scroll per px the row moves
 let wsTravel = 0;
 function layoutWorkshop() {
-  const pad = parseFloat(getComputedStyle(wsWindow).paddingLeft) + parseFloat(getComputedStyle(wsWindow).paddingRight);
-  wsTravel = Math.max(0, wsTrack.scrollWidth + 8 - (wsWindow.clientWidth - pad)); // +8: the last card's shadow
+  // the row starts (and, at the end, finishes) in line with the heading, wherever that sits
+  const head = $("#workshop .section-head").getBoundingClientRect();
+  wsTrack.style.setProperty("--lead", `${Math.max(16, Math.round(head.left))}px`);
+  wsTravel = Math.max(0, wsTrack.offsetWidth - wsWindow.clientWidth);
   wsPin.style.height = `${wsStage.offsetHeight + wsTravel * WS_K}px`;
   moveWorkshop();
 }
@@ -173,7 +175,8 @@ document.fonts?.ready.then(layoutWorkshop);
 wsTrack.addEventListener("focusin", (e) => {
   const card = e.target.closest(".project, .side-quests");
   if (!card || !wsTravel) return;
-  const want = Math.min(1, Math.max(0, (card.offsetLeft - 8) / wsTravel));
+  const lead = parseFloat(getComputedStyle(wsTrack).paddingLeft) || 0;
+  const want = Math.min(1, Math.max(0, (card.offsetLeft - lead) / wsTravel));
   const top = wsPin.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(wsStage).top) || 0);
   scrollTo({ top: top + want * (wsPin.offsetHeight - wsStage.offsetHeight), behavior: reduceMotion ? "auto" : "smooth" });
 });
