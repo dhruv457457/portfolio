@@ -46,7 +46,7 @@
       <nav class="trails" aria-label="Sections">
         <a class="trail" href="#workshop">
           <img src="assets/icon-toolbox.png" alt="" width="64" height="64">
-          <em>01</em><strong>The Workshop</strong><small>six things I've shipped</small><i aria-hidden="true">→</i>
+          <em>01</em><strong>The Workshop</strong><small id="trail-work">the things I've shipped</small><i aria-hidden="true">→</i>
         </a>
         <a class="trail" href="#lantern">
           <img src="assets/icon-lantern.png" alt="" width="42" height="64">
@@ -63,11 +63,17 @@
   <main>
     <!-- ============ Projects ============ -->
     <section class="section" id="workshop">
-      <div class="section-head">
-        <div><h2>The <span>Workshop</span></h2><p>Things I've built and shipped, most with real money on the line.</p></div>
-        <img class="pixel-icon" src="assets/icon-toolbox.png" alt="" width="96" height="96">
+      <!-- every project in one row: the stage stays pinned and scrolling down slides the row along -->
+      <div class="ws-pin" id="ws-pin">
+        <div class="ws-stage" id="ws-stage">
+          <div class="section-head">
+            <div><h2>The <span>Workshop</span></h2><p>Things I've built and shipped, most with real money on the line.</p></div>
+            <img class="pixel-icon" src="assets/icon-toolbox.png" alt="" width="96" height="96">
+          </div>
+          <div class="ws-window"><div class="projects" id="projects"></div></div>
+          <div class="ws-progress" aria-hidden="true"><span id="ws-count"></span><b class="ws-bar"><i id="ws-fill"></i></b><span class="ws-hint">scroll ↓ to slide</span></div>
+        </div>
       </div>
-      <div class="projects" id="projects"></div>
     </section>
 
     <!-- ============ Why me: minimum hand-holding ============ -->

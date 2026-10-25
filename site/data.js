@@ -98,6 +98,72 @@ window.SITE = {
       "live": "https://bone-dry.vercel.app",
       "code": "https://github.com/dhruv457457/Bone-Dry",
       "cover": "assets/cover-bonedry.webp"
+    },
+    {
+      "name": "Cryptify",
+      "kind": "Username payments + escrow",
+      "chips": [
+        "Milestone escrow",
+        "On-chain trust score",
+        "EDU Chain"
+      ],
+      "text": "Send money to @jane instead of a 0x address. Milestone-based escrow contracts for freelance work, and a trust score built from on-chain history. Built with a team of four.",
+      "live": "https://cryptify-defi.vercel.app",
+      "code": "https://github.com/dhruv457457/EduChain_Web-3-Project",
+      "cover": "assets/cover-cryptify.webp",
+      "team": true,
+      "extra": true
+    },
+    {
+      "name": "Soluma",
+      "kind": "Event ticketing on Solana",
+      "chips": [
+        "Solana",
+        "MetaMask embedded wallets",
+        "No seed phrases"
+      ],
+      "text": "Create an event, sell tickets and get paid straight to your wallet on Solana, with no seed phrase to manage. Built with a team of two.",
+      "live": "https://soluma.vercel.app",
+      "code": "https://github.com/dhruv457457/soLuma",
+      "cover": "assets/cover-soluma.webp",
+      "team": true,
+      "extra": true
+    },
+    {
+      "name": "Kite",
+      "kind": "Cross-chain DeFi deposits by ENS name",
+      "chips": [
+        "LI.FI routing",
+        "ENS profiles",
+        "Mainnet in 4 days"
+      ],
+      "text": "Deposit into Aave, Morpho, Spark or any vault from any token on any chain in one click, just by typing an ENS name. LI.FI finds the swap and bridge route.",
+      "live": "https://kite-lifi.vercel.app",
+      "code": "https://github.com/dhruv457457/Kite",
+      "cover": "assets/cover-kite.webp",
+      "extra": true
+    },
+    {
+      "name": "PayPact",
+      "kind": "Hackathon build on Solana",
+      "chips": [
+        "Solana",
+        "Two prize tracks"
+      ],
+      "text": "Placed in two tracks at the MetaMask × HackQuest DevCook: 3rd overall and 1st in Chain for Good.",
+      "extra": true
+    },
+    {
+      "name": "RebalanceVault",
+      "kind": "Self-rebalancing DeFi vault",
+      "chips": [
+        "EIP-2535 Diamond",
+        "Uniswap V3",
+        "Chainlink prices"
+      ],
+      "text": "An upgradeable vault on the Diamond pattern that keeps its target allocations by itself, trading through real Uniswap V3 liquidity at Chainlink oracle prices.",
+      "code": "https://github.com/dhruv457457/rebalance-vault",
+      "extra": true
     }
   ],
   "journey": [

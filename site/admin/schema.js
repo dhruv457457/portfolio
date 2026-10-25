@@ -24,7 +24,7 @@
       x: { kind: "handle", label: "X handle", max: 15 },
       resume: { kind: "file", label: "Résumé (PDF)", accept: ["pdf"], ...optional },
     }),
-    projects: list("Projects", 1, 12, object({
+    projects: list("Projects", 1, 16, object({
       name: text("Name", 40),
       kind: text("One-line description", 70),
       chips: tags("Chips (up to 4)", 4, 40),
@@ -35,6 +35,7 @@
       video: { kind: "youtube", label: "YouTube video id", ...optional },
       cover: { kind: "file", label: "Cover image", accept: ["webp", "png", "jpg"], ...optional },
       team: { kind: "bool", label: "Team project", ...optional },
+      extra: { kind: "bool", label: "Side quest (a smaller hackathon build, shown after the main ones)", ...optional },
     }), { title: "name" }),
     journey: list("Experience", 1, 6, object({
       role: text("Role", 60),

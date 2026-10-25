@@ -52,6 +52,26 @@ const PROJECT_ICONS = {
     "............", ".kk......kk.", "kbbk....kbbk", "kbbbkkkkbbbk", ".kbbbbbbbbk.", ".kbbbbbbbbk.",
     "kbbbkkkkbbbk", "kbbk....kbbk", ".kk......kk.", "............", "............", "............",
   ] },
+  cryptify: { colors: { k: "#1e2a44", b: "#3b82f6", l: "#93c5fd", w: "#f6f7fb" }, rows: [ // a shield with a check
+    "..kkkkkkkk..", ".kbbbbbbbbk.", ".kbllbbbbbk.", ".kbbbbbbwbk.", ".kbbbbbwwbk.", ".kbwbbwwbbk.",
+    ".kbwwwwbbbk.", "..kbwwbbbk..", "..kbbbbbbk..", "...kbbbbk...", "....kbbk....", ".....kk.....",
+  ] },
+  soluma: { colors: { k: "#2d2b48", p: "#9b7fe6", g: "#14f195", w: "#f6efe0" }, rows: [ // a ticket
+    "............", "............", "kkkkkkkkkkkk", "kpppppkppppk", "kpwwppkppgpk", ".kppppkpppk.",
+    ".kppppkpppk.", "kpwwppkppgpk", "kpppppkppppk", "kkkkkkkkkkkk", "............", "............",
+  ] },
+  kite: { colors: { k: "#2f3a4a", a: "#d9483b", b: "#f1bf45", t: "#6d7a70" }, rows: [ // a kite on its string
+    ".....kk.....", "....kabk....", "...kaabbk...", "..kaaabbbk..", ".kaaaabbbbk.", "..kbbbaaak..",
+    "...kbbaak...", "....kbak....", ".....kk.....", "......t.....", ".....t.t....", "......t.....",
+  ] },
+  paypact: { colors: { k: "#5a4636", p: "#efe2c2", i: "#7a5a3a", r: "#c0473a" }, rows: [ // a signed pact with a seal
+    ".kkkkkkkkkk.", "kppppppppppk", ".kpiiiiiipk.", ".kppppppppk.", ".kpiiiiippk.", ".kppppppppk.",
+    ".kpiiipprrk.", ".kpppprrrrk.", ".kpppprrrrk.", "kpppppprrppk", ".kkkkkkkkkk.", "............",
+  ] },
+  rebalancevault: { colors: { k: "#3b4150", g: "#8d939b", d: "#5d6678", y: "#f1bf45" }, rows: [ // a vault door
+    "kkkkkkkkkkkk", "kggggggggggk", "kgkkkkkkkkgk", "kgkddyyddkgk", "kgkdykkydkgk", "kgkykddkykgk",
+    "kgkykddkykgk", "kgkdykkydkgk", "kgkddyyddkgk", "kgkkkkkkkkgk", "kggggggggggk", "kkkkkkkkkkkk",
+  ] },
   chest: { colors: { k: "#4a3426", w: "#9a6b3f", d: "#7a5233", y: "#f1bf45" }, rows: [ // a treasure chest
     "............", "..kkkkkkkk..", ".kwwwwwwwwk.", "kwwwwwwwwwwk", "kddddddddddk", "kkkkkyykkkkk",
     "kwwwkyykwwwk", "kwwwwkkwwwwk", "kwwwwwwwwwwk", "kddddddddddk", "kkkkkkkkkkkk", "............",
@@ -69,11 +89,17 @@ const iconFor = (p) => pixelLogo(PROJECT_ICONS[p.name.toLowerCase()] || PROJECT_
 
 // A card is the short version: cover, name, chips. Clicking anywhere on it opens the project,
 // with its demo playing and the whole write-up underneath.
-S.projects.forEach((p) => {
-  const card = el("article", "project card reveal");
+S.projects.forEach((p, i) => {
+  // the side quests start after a sign
+  if (p.extra && !S.projects.slice(0, i).some((q) => q.extra)) {
+    const sign = el("div", "side-quests card"), n = S.projects.filter((q) => q.extra).length;
+    sign.append(pixelLogo(PROJECT_ICONS.chest, 12), el("b", "", "Side quests"), el("span", "", `${n} hackathon builds, all of them winners`), el("i", "", "→"));
+    $("#projects").append(sign);
+  }
+  const card = el("article", `project card reveal${p.extra ? " extra" : ""}`);
   const open = () => openProject(p);
   card.addEventListener("click", (e) => { if (!e.target.closest("a, button")) open(); });
-  if (p.cover) {
+  {
     // a little browser window: the bar names the live site, the screen is a capture of it
     const win = el("div", "window"), bar = el("div", "window-bar");
     bar.append(el("i"), el("i"), el("i"), el("span", "host", hostOf(p.live) || p.name));
@@ -81,11 +107,18 @@ S.projects.forEach((p) => {
     const thumb = el("button", "thumb");
     thumb.type = "button";
     thumb.setAttribute("aria-label", `Open ${p.name}${p.video ? ": demo video and details" : " details"}`);
-    const img = el("img");
-    img.alt = "";
-    img.loading = "lazy";
-    img.src = p.cover;
-    thumb.append(img);
+    if (p.cover) {
+      const img = el("img");
+      img.alt = "";
+      img.loading = "lazy";
+      img.src = p.cover;
+      img.addEventListener("load", layoutWorkshop);
+      thumb.append(img);
+    } else { // no capture yet: the project's icon, big, on a dark screen
+      const screen = el("span", "screen");
+      screen.append(iconFor(p), el("b", "", p.name));
+      thumb.append(screen);
+    }
     if (p.video) thumb.append(el("span", "play", "▶"));
     thumb.append(el("span", "watch", p.video ? "watch demo" : "see more"));
     thumb.addEventListener("click", open);
@@ -111,10 +144,47 @@ S.projects.forEach((p) => {
   $("#projects").append(card);
 });
 
+/* ---------- The Workshop: one row of every project, sliding sideways as you scroll down ---------- */
+// The stage stays pinned while the page scrolls; the row moves WS_K px for every px of scroll the other
+// way round (the row travels further than you scroll), so a dozen projects cost little scrolling.
+const wsPin = $("#ws-pin"), wsStage = $("#ws-stage"), wsWindow = $(".ws-window"), wsTrack = $("#projects");
+const WS_K = 0.6; // px of scroll per px the row moves
+let wsTravel = 0;
+function layoutWorkshop() {
+  const pad = parseFloat(getComputedStyle(wsWindow).paddingLeft) + parseFloat(getComputedStyle(wsWindow).paddingRight);
+  wsTravel = Math.max(0, wsTrack.scrollWidth + 8 - (wsWindow.clientWidth - pad)); // +8: the last card's shadow
+  wsPin.style.height = `${wsStage.offsetHeight + wsTravel * WS_K}px`;
+  moveWorkshop();
+}
+function moveWorkshop() {
+  const r = wsPin.getBoundingClientRect(), span = Math.max(1, wsPin.offsetHeight - wsStage.offsetHeight);
+  const p = Math.min(1, Math.max(0, ((parseFloat(getComputedStyle(wsStage).top) || 0) - r.top) / span));
+  wsTrack.style.transform = `translateX(${(-p * wsTravel).toFixed(1)}px)`;
+  const cards = wsTrack.querySelectorAll(".project"), at = Math.min(cards.length, 1 + Math.round(p * (cards.length - 1)));
+  $("#ws-count").textContent = `${at} / ${cards.length}`;
+  $("#ws-fill").style.width = `${(p * 100).toFixed(1)}%`;
+  wsStage.classList.toggle("ended", p > 0.98);
+}
+let wsTick = 0;
+addEventListener("scroll", () => { if (!wsTick) wsTick = requestAnimationFrame(() => { wsTick = 0; moveWorkshop(); }); }, { passive: true });
+addEventListener("resize", layoutWorkshop);
+document.fonts?.ready.then(layoutWorkshop);
+// tabbing onto a card scrolls the page to the spot where that card is in view
+wsTrack.addEventListener("focusin", (e) => {
+  const card = e.target.closest(".project, .side-quests");
+  if (!card || !wsTravel) return;
+  const want = Math.min(1, Math.max(0, (card.offsetLeft - 8) / wsTravel));
+  const top = wsPin.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(wsStage).top) || 0);
+  scrollTo({ top: top + want * (wsPin.offsetHeight - wsStage.offsetHeight), behavior: reduceMotion ? "auto" : "smooth" });
+});
+$("#trail-work").textContent = `${S.projects.length} things I've shipped`;
+layoutWorkshop();
+
 /* ---------- A project, opened: the demo plays on top, the whole write-up sits below ---------- */
 const player = $("#player");
 function openProject(p) {
   const frame = $("#player-iframe"), cover = $("#pm-cover");
+  $(".pm .player-frame").hidden = !p.video && !p.cover;
   frame.hidden = !p.video;
   cover.hidden = !!p.video || !p.cover;
   if (p.video) {

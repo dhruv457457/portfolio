@@ -229,7 +229,41 @@ main { position: relative; }
 .reveal.in { opacity: 1; transform: none; }
 
 /* ---------- Projects ---------- */
-.projects { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+/* the Workshop: a pinned stage, and one row of projects that slides along as you scroll */
+.ws-pin { position: relative; }
+.ws-stage { position: sticky; top: 3vh; }
+.ws-stage .section-head { margin-bottom: 20px; }
+.ws-window { overflow: hidden; margin: 0 -8px; padding: 6px 8px 12px; } /* room for the cards' offset shadows */
+.projects { display: flex; align-items: stretch; gap: 22px; width: max-content; will-change: transform; }
+.projects > .project { flex: none; width: min(400px, 80vw); }
+.projects .thumb { width: 100%; } /* a button only shrink-wraps its content otherwise */
+.projects > .project.extra .window-bar { background: #2a2418; } /* side quests: a warmer bar */
+.side-quests {
+  flex: none;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  width: min(240px, 60vw);
+  padding: 24px;
+  border: 3px dashed color-mix(in srgb, var(--ink) 35%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #f1bf45 12%, var(--card));
+  text-align: center;
+}
+.side-quests svg { width: 56px; height: 56px; }
+.side-quests b { font: 400 .9rem var(--pixel); letter-spacing: .1em; text-transform: uppercase; }
+.side-quests span { color: var(--muted); font: 400 1.15rem/1.2 "VT323", var(--pixel), monospace; }
+.side-quests i { font: 400 1.6rem var(--pixel); color: var(--accent); font-style: normal; animation: nudge-x 1s steps(2, jump-none) infinite; }
+@keyframes nudge-x { 50% { transform: translateX(5px); } }
+.ws-progress { display: flex; align-items: center; gap: 14px; margin-top: 6px; font: 400 1.2rem/1 "VT323", var(--pixel), monospace; color: var(--muted); }
+.ws-bar { flex: 1; max-width: 420px; height: 12px; padding: 2px; border: 2px solid var(--ink); border-radius: 3px; background: var(--bg); }
+.ws-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.ws-hint { transition: opacity .4s; }
+.ws-stage.ended .ws-hint { opacity: 0; }
+/* a card with no capture yet: its icon on a dark screen */
+.thumb .screen { display: grid; place-content: center; justify-items: center; gap: 10px; width: 100%; aspect-ratio: 16 / 9; background: radial-gradient(circle at 50% 40%, #2c3446, #161a24 70%); color: #c9cfdb; font: 400 1.4rem "VT323", var(--pixel), monospace; }
+.thumb .screen svg { width: 72px; height: 72px; }
 /* the Workshop's cards wear the Inventory pouches' pixel frame */
 .project {
   display: flex;
@@ -1031,7 +1065,15 @@ main { position: relative; }
   .section { padding: 84px 20px; }
   .section-head, .section-head.flip { flex-direction: column-reverse; align-items: flex-start; text-align: left; gap: 14px; }
   .pixel-icon { width: 64px; }
-  .projects { grid-template-columns: 1fr; }
+  /* the whole pinned stage has to fit above the dock: a short heading, two chips, smaller buttons */
+  .ws-stage .section-head { margin-bottom: 10px; }
+  .ws-stage .section-head p, .ws-stage .section-head .pixel-icon { display: none; }
+  .ws-hint { display: none; }
+  .projects .project-body { padding: 14px 16px 16px; }
+  .projects .chips li:nth-child(n + 3) { display: none; }
+  .projects .project h3 { font-size: 1.7rem; }
+  .projects .actions .btn { padding: 5px 10px 4px; font-size: 1.15rem; }
+  .thumb .play { width: 48px; height: 44px; font-size: 1.35rem; }
   /* RPG box stacks; trail runs down the left and ends at me */
   .rpg-scene { height: 200px; }
   .rpg-box { margin: -20px 8px 0; padding: 26px 20px 22px; }
