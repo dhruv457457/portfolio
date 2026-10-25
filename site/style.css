@@ -84,7 +84,7 @@ img.pixel-icon, .hero-art { image-rendering: pixelated; }
 .pollen { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .hero-inner {
   position: relative;
-  width: min(760px, calc(100% - 32px));
+  width: min(900px, calc(100% - 32px));
   padding: 12vh 0 16vh;
   text-align: center;
 }
@@ -112,28 +112,92 @@ img.pixel-icon, .hero-art { image-rendering: pixelated; }
   opacity: .9;
 }
 .trail-label span { width: 56px; height: 1px; background: rgb(255 255 255 / .6); }
-.trails { display: grid; gap: 12px; }
+/* Three frosted-glass cards, each with its pixel icon; a light sweeps across on hover */
+.trails { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .trail {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 16px 24px;
-  border: 1px solid rgb(255 255 255 / .28);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 188px;
+  padding: 18px 20px 18px;
+  border: 1px solid rgb(255 255 255 / .34);
   border-radius: var(--radius);
-  background: rgb(30 30 25 / .22);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: linear-gradient(160deg, rgb(255 255 255 / .24), rgb(255 255 255 / .07) 46%, rgb(40 25 15 / .2));
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .5), inset 0 -1px 0 rgb(0 0 0 / .08), 0 22px 44px -26px rgb(40 18 6 / .65);
+  overflow: hidden;
   text-decoration: none;
   text-align: left;
-  transition: background .25s, transform .25s, border-color .25s;
+  transition: transform .35s cubic-bezier(.3, 1.4, .5, 1), border-color .25s, background .25s;
 }
-.trail em { font: italic 1.1rem var(--serif); opacity: .7; }
-.trail strong { font: 400 1.6rem var(--serif); }
-.trail small { font: italic .95rem var(--serif); opacity: .75; }
-.trail i { margin-left: auto; font-style: normal; transition: transform .25s; }
-.trail:hover { background: rgb(30 30 25 / .34); border-color: rgb(255 255 255 / .5); transform: translateY(-2px); }
+.trail::before { /* the light sweep */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, rgb(255 255 255 / .32) 46%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform .9s ease;
+  pointer-events: none;
+}
+.trail img { height: 52px; width: auto; margin-bottom: auto; image-rendering: pixelated; filter: drop-shadow(0 5px 0 rgb(40 20 10 / .22)); transition: transform .4s cubic-bezier(.3, 1.6, .5, 1); }
+.trail em { position: absolute; top: 16px; right: 18px; font: 400 .7rem var(--pixel); letter-spacing: .14em; opacity: .75; }
+.trail strong { margin-top: 18px; font: 400 1.55rem/1.08 var(--serif); text-shadow: 0 1px 10px rgb(40 25 15 / .35); }
+.trail small { font: italic .98rem var(--serif); opacity: .82; }
+.trail i { position: absolute; right: 18px; bottom: 16px; font-style: normal; transition: transform .25s; }
+.trail:hover { transform: translateY(-5px); border-color: rgb(255 255 255 / .6); background: linear-gradient(160deg, rgb(255 255 255 / .3), rgb(255 255 255 / .1) 46%, rgb(40 25 15 / .16)); }
+.trail:hover::before { transform: translateX(120%); }
+.trail:hover img { transform: translateY(-6px) rotate(-4deg); }
 .trail:hover i { transform: translateX(4px); }
+
+/* ---------- The pixel me who walks the page (drawn by guide.js) ---------- */
+/* one see-through layer over the page: him, his rope and the coins he drops */
+.guide { position: fixed; left: 0; top: 0; z-index: 15; pointer-events: none; }
+/* what he says while hanging around (and the campfire / footer thoughts below) */
+.guide-say, .think {
+  margin: 0;
+  padding: 6px 12px 5px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font: 400 1.2rem/1.05 "VT323", var(--pixel), monospace;
+  white-space: nowrap;
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--ink) 18%, transparent);
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+.guide-say { position: fixed; left: 0; top: 0; z-index: 16; }
+/* on a trail stop it's a thought: a soft cloud with the step's detail */
+.guide-say.cloud { width: max-content; max-width: 270px; padding: 9px 14px 8px; border-radius: 22px; white-space: normal; font-size: 1.12rem; line-height: 1.12; }
+.guide-say.cloud::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -15px;
+  width: 9px;
+  height: 9px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--card);
+}
+.guide-say.on, .think.on { opacity: 1; }
+/* thought bubbles get the little trail of circles */
+.think::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  width: 9px;
+  height: 9px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 10px 10px 0 -3px var(--card), 10px 10px 0 -1px var(--ink);
+}
 
 /* ---------- Sections ---------- */
 main { position: relative; }
@@ -267,13 +331,13 @@ main { position: relative; }
 .btn:hover { transform: translateY(-1px); }
 
 /* ---------- Journey: pinned, scroll moves through the stops ---------- */
-.jr { position: relative; height: calc(var(--n, 3) * 55vh + 70vh); }
+.jr { position: relative; height: calc(var(--n, 3) * 75vh + 60vh); } /* each stop gets most of a screen of scrolling */
 .jr-sticky {
   position: sticky;
-  top: 14vh;
+  top: clamp(64px, 10vh, 112px);
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 34px;
+  gap: 22px 34px;
   align-items: start;
 }
 .jr-rail { position: absolute; left: 11px; top: 14px; width: 2px; height: calc(var(--n, 3) * 92px - 50px); background: var(--line); }
@@ -309,6 +373,9 @@ main { position: relative; }
 .jr-step.on { color: var(--ink); }
 .jr-step.on .jr-dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 18%, transparent); }
 .jr-panels { display: grid; } /* panels stack in one cell, so the box never resizes while switching */
+/* the pinned Journey (steps, the tallest panel and the team stage) has to clear the dock on shorter laptop screens */
+@media (min-width: 760px) and (max-width: 1100px) { .jr-sticky { grid-template-columns: 230px 1fr; } }
+@media (min-width: 760px) and (max-height: 900px) { .jr-panel .chips { display: none; } .jr-panel ul { margin-bottom: 0; } }
 .jr-panel {
   grid-area: 1 / 1;
   align-self: start; /* a short panel stays short; the cell keeps the tallest one's height */
@@ -327,26 +394,78 @@ main { position: relative; }
 .jr-panel li::marker { content: "❖  "; color: var(--accent); }
 .jr-panel .chips { margin: 0; }
 
-/* ---------- Minimum hand-holding: an RPG dialogue ---------- */
-.rpg {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 18px;
-  align-items: stretch;
-  margin-bottom: 80px;
+/* The team scene under the panel: one wide stage per stop, and a level-up between them */
+.jr-side { position: relative; }
+.stage {
+  position: relative;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0 0 8px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: linear-gradient(color-mix(in srgb, var(--accent) 7%, var(--card)), var(--card));
+  box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--ink) 18%, transparent), 5px 5px 0 color-mix(in srgb, var(--ink) 16%, transparent);
+  overflow: hidden;
 }
-.rpg-portrait, .rpg-box {
+.stage canvas { display: block; margin: 0 auto; image-rendering: pixelated; }
+.stage figcaption { padding: 0 16px; font: 400 1.15rem/1.2 "VT323", var(--pixel), monospace; color: var(--muted); }
+.stage figcaption b { font: 400 .72rem var(--pixel); color: var(--accent); }
+.stage figcaption span:first-of-type { color: var(--ink); }
+/* levelling up: the stage shakes, flashes white, and LEVEL UP! slams in */
+.stage::after { content: ""; position: absolute; inset: 0; background: #fffdf4; opacity: 0; pointer-events: none; }
+.stage.evolving { animation: shake .6s steps(12, end) 1; }
+.stage.evolving::after { animation: flash .9s ease-out .1s 1; }
+@keyframes shake {
+  0%, 100% { transform: none; }
+  20% { transform: translate(-4px, 2px) rotate(-1deg); }
+  40% { transform: translate(4px, -2px) rotate(1deg); }
+  60% { transform: translate(-3px, -1px); }
+  80% { transform: translate(3px, 1px); }
+}
+@keyframes flash { 0% { opacity: .95; } 100% { opacity: 0; } }
+.evo-stamp {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  z-index: 2;
+  padding: 4px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #ffd34a;
+  color: var(--ink);
+  font: 400 1rem var(--pixel);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-8deg) scale(2.4);
+  pointer-events: none;
+}
+.stage.evolving .evo-stamp { animation: stamp 1.5s cubic-bezier(.2, 1.6, .4, 1) .15s 1; }
+@keyframes stamp {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(2.4); }
+  25% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -80%) rotate(-8deg) scale(1); }
+}
+
+/* ---------- Minimum hand-holding: an RPG dialogue ---------- */
+.rpg { display: grid; margin-bottom: 80px; }
+.rpg-scene, .rpg-box {
   position: relative;
   border: 3px solid var(--ink);
   border-radius: 6px;
   box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--ink) 25%, transparent), 6px 6px 0 color-mix(in srgb, var(--ink) 18%, transparent);
 }
-.rpg-portrait {
+/* the workshop: a warm wall over floorboards; the canvas draws the room's contents */
+.rpg-scene {
+  height: 250px;
   overflow: hidden;
-  background: linear-gradient(#f6d9a8, #e9b97d 55%, #a9b97a 55.5%, #8aa25e);
-  aspect-ratio: 1;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 46px, rgb(74 52 38 / .07) 46px 48px),
+    linear-gradient(color-mix(in srgb, #f3e2bf 82%, var(--card)), color-mix(in srgb, #e8cf9f 82%, var(--card)) 84%, #b07f4f 84.2%, #94673d);
 }
-.rpg-portrait img { position: absolute; left: 50%; bottom: -2px; width: 92%; height: auto; transform: translateX(-50%); image-rendering: pixelated; }
+.rpg-scene canvas { position: absolute; left: 0; top: 0; }
+/* the dialogue box sits over the bottom of the scene, the way a game draws it */
+.rpg-box { z-index: 1; margin: -26px 22px 0; }
 .rpg-box {
   display: flex;
   flex-direction: column;
@@ -400,36 +519,20 @@ main { position: relative; }
 .sub-head::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
 /* ---------- The trail: a lantern walks it as you scroll, and finds me at the end ---------- */
-.walk {
-  --p: 0;
-  display: grid;
-  grid-template-columns: 1fr 170px;
-  align-items: end;
-  gap: 10px;
-  margin: 70px 0 80px;
-}
-.walk-path { position: relative; padding-top: 6px; }
+/* the trail pins in the middle of the screen for a stretch of scrolling, one stop at a time */
+.trail-pin { position: relative; height: calc(5 * 32vh + 70vh); margin-bottom: 280px; } /* the bottom margin is room for the crew strip */
+.walk { position: sticky; top: 34vh; }
+.walk-path { position: relative; z-index: 1; padding-top: 6px; }
+.trail-fx { position: absolute; left: 0; top: 0; pointer-events: none; }
 .trail-line {
   position: absolute;
-  left: 9%;
-  right: -60px;
+  left: 10%;
+  right: 10%;
   top: 31px;
   height: 2px;
   background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 35%, transparent) 0 8px, transparent 8px 14px);
 }
-.trail-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); box-shadow: 0 0 12px rgb(255 197 107 / .7); } /* sized by JS to follow the lantern */
-.trail-lantern {
-  position: absolute;
-  left: 0; /* left/top set by JS: the lantern rides the line */
-  top: 0;
-  width: 34px;
-  height: auto;
-  image-rendering: pixelated;
-  transform: translate(-50%, -80%);
-  animation: sway 1.6s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px rgb(255 190 90 / .7));
-  z-index: 2;
-}
+.trail-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); box-shadow: 0 0 12px rgb(255 197 107 / .7); } /* sized by guide.js to follow him */
 .workflow {
   position: relative;
   display: grid;
@@ -462,70 +565,37 @@ main { position: relative; }
   color: var(--accent-ink);
   box-shadow: 0 0 0 6px var(--bg-alt), 0 0 22px 2px rgb(255 190 90 / .55);
 }
-.workflow b { display: block; font: 400 1.35rem/1.1 var(--serif); margin-bottom: 8px; }
-.workflow span:not(.node) { display: block; font-size: .88rem; color: var(--muted); line-height: 1.55; }
+.workflow b { display: block; font: 400 1.35rem/1.1 var(--serif); }
+.workflow li.lit .node { animation: stomp .3s ease-out 1; } /* a little squash when he lands on it */
+@keyframes stomp { 40% { transform: scaleY(.86) translateY(3px); } }
 
-@keyframes sway { 50% { rotate: 6deg; } }
-.walk-end { position: relative; display: grid; justify-items: center; }
-.walk-end img { width: 120px; height: auto; image-rendering: pixelated; transform-origin: 50% 100%; transition: transform .4s; }
-.walk.done .walk-end img { animation: hop .9s cubic-bezier(.3, 1.6, .5, 1) 1; }
-@keyframes hop { 40% { transform: translateY(-14px); } }
-.walk-say {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  display: grid;
-  padding: 6px 14px;
+/* ---------- Inventory: every skill on show, one pouch per group ---------- */
+.bag { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.pouch {
+  padding: 14px 16px 16px;
   border: 3px solid var(--ink);
   border-radius: 6px;
-  background: var(--card);
-  font: 400 1.4rem/1 "VT323", var(--pixel), monospace;
-  white-space: nowrap;
-  text-align: center;
-  opacity: 0;
-  transform: translate(-50%, 8px) scale(.9);
-  transition: opacity .3s, transform .4s cubic-bezier(.3, 1.6, .5, 1);
+  box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--ink) 18%, transparent), 5px 5px 0 color-mix(in srgb, var(--ink) 16%, transparent);
 }
-.walk-say small { font-size: 1rem; color: var(--muted); }
-.walk-say::after { content: ""; position: absolute; left: 50%; bottom: -9px; width: 12px; height: 12px; background: var(--card); border: 3px solid var(--ink); border-width: 0 3px 3px 0; transform: translateX(-50%) rotate(45deg); }
-.walk.done .walk-say { opacity: 1; transform: translate(-50%, 0); }
-
-/* ---------- Inventory: a game-style bag of skills ---------- */
-.inventory { padding: 18px 22px 22px; }
-.inv-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
-.inv-tabs button {
-  padding: 6px 14px;
-  border: 2px solid var(--line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-  font: 400 .72rem var(--pixel);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background .2s, color .2s, border-color .2s;
-}
-.inv-tabs button:hover { color: var(--ink); }
-.inv-tabs button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-.inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pouch-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.pouch-head svg { width: 26px; height: 26px; flex: none; }
+.pouch-head b { font: 400 .8rem var(--pixel); letter-spacing: .1em; text-transform: uppercase; }
+.pouch-head small { margin-left: auto; font: 400 1.05rem "VT323", var(--pixel), monospace; color: var(--muted); }
+.slots { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
 .slot {
-  display: grid;
-  place-items: center;
-  min-height: 74px;
-  padding: 10px;
-  border: 2px solid color-mix(in srgb, var(--ink) 14%, transparent);
-  border-radius: 8px;
-  background:
-    linear-gradient(135deg, transparent 0 70%, color-mix(in srgb, var(--accent) 12%, transparent) 70%),
-    var(--bg);
+  padding: 5px 10px 4px;
+  border: 2px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 5px;
+  background: linear-gradient(135deg, transparent 0 72%, color-mix(in srgb, var(--accent) 14%, transparent) 72%), var(--bg);
   box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--ink) 8%, transparent);
-  font: 400 1.35rem/1 "VT323", var(--pixel), monospace;
-  text-align: center;
-  animation: slotIn .35s ease both;
-  transition: transform .2s, border-color .2s;
+  font: 400 1.25rem/1 "VT323", var(--pixel), monospace;
+  opacity: 0;
+  transform: translateY(-16px) scale(.8);
+  transition: border-color .2s, box-shadow .2s;
 }
-.slot:hover { transform: translateY(-3px); border-color: var(--accent); }
-@keyframes slotIn { from { opacity: 0; transform: scale(.85); } }
+.pouch.open .slot { animation: drop .5s cubic-bezier(.3, 1.6, .5, 1) var(--d, 0ms) forwards; }
+@keyframes drop { to { opacity: 1; transform: none; } }
+.slot:hover { border-color: var(--accent); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--accent) 30%, transparent), 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
 
 /* ---------- Trophy room: the loot, then the shelf ---------- */
 .loot { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-bottom: 22px; }
@@ -582,11 +652,16 @@ main { position: relative; }
 
 /* ---------- GitHub garden ---------- */
 .garden { padding: 22px 24px; }
+/* pinned while he waters the whole bed. The extra scroll his walk takes has to be content, not padding:
+   a sticky card can't move into its container's padding, so with padding it never pins. */
+.garden-pin::after { content: ""; display: block; height: 75vh; }
+.garden-pin > .garden { position: sticky; top: 26vh; } /* roughly the middle of the screen */
 .garden-top, .garden-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: .88rem; }
 .garden-top span { font: 400 1.3rem var(--serif); }
 .garden-top a { color: var(--muted); text-decoration: none; }
-.garden-scroll { overflow-x: auto; margin: 16px 0; padding-bottom: 4px; }
-.garden-bed { width: max-content; margin: 0 auto; }
+.garden-scroll { overflow-x: auto; margin: 6px 0 16px; padding: 64px 0 4px; } /* the top padding is headroom for the gardener */
+.garden-bed { position: relative; width: max-content; margin: 0 auto; }
+.gardener { position: absolute; left: 0; z-index: 1; pointer-events: none; }
 .garden-plants {
   display: grid;
   grid-auto-flow: column;
@@ -598,7 +673,7 @@ main { position: relative; }
   border-bottom: 3px solid color-mix(in srgb, var(--g4) 45%, #8a6a45);
 }
 .garden-plants i { position: relative; justify-self: center; width: 3px; height: 0; background: var(--g3); transition: height .9s steps(6, end); }
-#garden.grow .garden-plants i { height: var(--h, 0px); }
+.garden-plants i.wet { height: var(--h, 0px); } /* each plant grows once it's been watered */
 .garden-plants i::before, .garden-plants i::after { /* two pixel leaves */
   content: "";
   position: absolute;
@@ -611,7 +686,7 @@ main { position: relative; }
 }
 .garden-plants i::before { right: 3px; }
 .garden-plants i::after { left: 3px; top: 55%; background: var(--g3); }
-#garden.grow .garden-plants i::before, #garden.grow .garden-plants i::after { opacity: 1; }
+.garden-plants i.wet::before, .garden-plants i.wet::after { opacity: 1; }
 .garden-plants i.bloom { background: var(--g4); }
 .garden-plants i.bloom::before { /* a flower on the best weeks */
   top: -4px;
@@ -636,19 +711,21 @@ main { position: relative; }
 .legend { display: inline-flex; align-items: center; gap: 3px; }
 .legend i { display: inline-block; }
 
-/* ---------- Campfire contact ---------- */
-.camp { position: relative; height: 430px; max-width: 860px; margin: 0 auto; }
-.camp-ground { /* a soft clearing of grass around the fire */
+/* ---------- The campfire, in the footer at night ---------- */
+/* the ring is laid out 640 x 450 and scaled to fit its column (--camp-k, from guide.js), phones included */
+.camp { position: relative; z-index: 1; width: 100%; max-width: 660px; height: calc(450px * var(--camp-k, 1)); margin: 0 auto; transform: scale(var(--camp-k, 1)); transform-origin: 50% 100%; }
+.camp-ground { /* the warm light the fire throws on the grass */
   position: absolute;
   left: 50%;
-  bottom: 14px;
-  width: 92%;
-  height: 210px;
+  bottom: 0;
+  width: 100%;
+  height: 300px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--g2) 55%, transparent), color-mix(in srgb, var(--g1) 30%, transparent) 55%, transparent 72%);
+  background: radial-gradient(ellipse at 50% 55%, rgb(255 170 80 / .32), rgb(255 140 60 / .12) 48%, transparent 70%);
   transform: translateX(-50%);
 }
-.fire { position: absolute; left: 50%; bottom: 92px; width: 150px; transform: translateX(-50%); }
+.fire { position: absolute; left: 50%; bottom: 82px; z-index: 2; width: 130px; transform: translateX(-50%); }
+.camp-crew { position: absolute; left: calc(50% - 320px); bottom: 0; z-index: 3; pointer-events: none; }
 .fire img { position: relative; width: 100%; image-rendering: pixelated; animation: flicker 1.6s steps(2, jump-none) infinite; }
 @keyframes flicker { 50% { transform: scaleY(1.03) translateY(-1px); filter: brightness(1.08); } }
 .fire-glow {
@@ -721,16 +798,75 @@ main { position: relative; }
 }
 .camper:hover .camper-fig, .camper:focus-visible .camper-fig { transform: translateY(-8px); }
 .camper:hover .camper-say, .camper:focus-visible .camper-say { opacity: 1; transform: translate(-50%, 0); }
-.camper .camper-fig { height: 170px; }
-.camper.back-left .camper-fig, .camper.back-right .camper-fig { height: 136px; }
-.camper.front-left { left: calc(50% - 340px); bottom: 10px; }
-.camper.back-left { left: calc(50% - 215px); bottom: 190px; }
-.camper.back-right { right: calc(50% - 215px); bottom: 190px; }
-.camper.front-right { right: calc(50% - 340px); bottom: 10px; }
-.camp-mail { margin: 24px 0 0; text-align: center; font: italic 1.15rem var(--serif); color: var(--muted); }
-.camp-mail a { color: var(--accent); }
+/* round the fire: four in front, four behind (me, Claude, OpenClaw, X), the near side of the fire left open */
+.camper .camper-fig { height: 132px; }
+.camper.back-left .camper-fig { height: 124px; }
+.camper.back-right .camper-fig { height: 112px; }
+.camper.front-left { left: calc(50% - 330px); bottom: 0; } /* GitHub */
+.camper.back-left { left: calc(50% - 224px); bottom: 34px; } /* LinkedIn, beside GitHub */
+.camper.back-right { right: calc(50% - 250px); bottom: 182px; } /* X, across the fire */
+.camper.front-right { right: calc(50% - 330px); bottom: 0; } /* Email */
+/* night-time: the campers sit in firelight, and their name tags glow */
+.footer .camper { color: #f4ecda; }
+.footer .camper-fig img { filter: brightness(.82) saturate(.92) drop-shadow(0 0 10px rgb(255 160 70 / .25)); }
+.footer .camper-tag { background: rgb(20 24 44 / .7); border-color: rgb(255 255 255 / .18); color: #f4ecda; }
+.footer .camper-say { background: #f4ecda; color: #1b2033; }
+/* my own log, behind the fire between LinkedIn and X; empty until I arrive */
+/* his log is just left of the fire, so his thought floats up over the flames, between LinkedIn and X */
+.camper.me-seat { left: calc(50% - 200px); bottom: 198px; z-index: 4; transform: translateX(-50%); } /* behind the fire, facing you */
+.me-seat canvas { display: block; }
+.me-seat .think { position: absolute; left: 50%; bottom: calc(100% - 14px); transform: translateX(-30%); white-space: nowrap; font-size: calc(1.2rem / var(--camp-k, 1)); } /* over his head, leaning toward the fire (clear of the left edge on a phone); readable when the ring shrinks */
+.camp-mail { margin: 0 0 18px; font: italic 1.1rem var(--serif); opacity: .85; }
+.camp-mail a { color: #ffd27a; }
 
-.footer { padding: 40px 24px 130px; text-align: center; font: italic 1rem var(--serif); color: var(--muted); }
+/* ---------- Footer: the same valley after dark; the words on the left, the campfire on the right ---------- */
+.footer {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: end;
+  gap: 24px;
+  min-height: 100vh; /* the whole screen, on any monitor */
+  min-height: 100svh;
+  padding: 0 max(24px, calc((100% - 1240px) / 2)) 110px;
+  background: #0e1631 url("assets/footer-night.webp") center 72% / cover no-repeat;
+  color: #f4ecda;
+  text-align: left;
+  overflow: hidden;
+}
+.footer::before { /* darken the grass a touch so the words read */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 35%, rgb(8 12 28 / .55) 78%, rgb(8 12 28 / .75));
+  pointer-events: none;
+}
+.footer-sky { position: absolute; left: 0; top: 0; pointer-events: none; }
+.footer-inner { position: relative; z-index: 1; padding-bottom: 20px; }
+.footer-pitch { margin: 14px 0 0; font: italic 1.2rem var(--serif); color: #ffd27a; text-wrap: balance; }
+.footer-kicker { margin: 0; font: 400 .72rem var(--pixel); letter-spacing: .25em; text-transform: uppercase; opacity: .75; text-wrap: balance; }
+.footer-name { margin: .12em 0 .1em; font: 400 clamp(3rem, 8vw, 5.4rem)/1 var(--serif); text-shadow: 0 2px 30px rgb(255 210 140 / .25); }
+.footer-line { margin: 0; font: italic 1.2rem var(--serif); opacity: .85; text-wrap: balance; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 18px; padding: 0; list-style: none; }
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 15px 7px 8px;
+  border: 1px solid rgb(255 255 255 / .22);
+  border-radius: 999px;
+  background: rgb(255 255 255 / .09);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: inherit;
+  font: 400 1.05rem var(--serif);
+  text-decoration: none;
+  transition: background .25s, transform .25s;
+}
+.footer-links a:hover { background: rgb(255 255 255 / .18); transform: translateY(-2px); }
+.footer-links svg { width: 22px; height: 22px; padding: 3px; border-radius: 6px; background: #f4ecda; }
+.footer-top { font: 400 .72rem var(--pixel); letter-spacing: .14em; text-transform: uppercase; color: inherit; opacity: .7; text-decoration: none; }
+.footer-top:hover { opacity: 1; }
 
 /* ---------- Dock ---------- */
 .dock {
@@ -812,36 +948,48 @@ main { position: relative; }
   .pixel-icon { width: 64px; }
   .projects { grid-template-columns: 1fr; }
   /* RPG box stacks; trail runs down the left and ends at me */
-  .rpg { grid-template-columns: 1fr; }
-  .rpg-portrait { width: 150px; }
-  .rpg-box { padding: 26px 20px 22px; }
+  .rpg-scene { height: 200px; }
+  .rpg-box { margin: -20px 8px 0; padding: 26px 20px 22px; }
   .rpg-text { font-size: 1.45rem; }
-  .walk { grid-template-columns: 1fr; margin-top: 30px; }
   .trail-line { left: 25px; right: auto; top: 26px; bottom: -40px; width: 2px; height: auto; background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--accent) 35%, transparent) 0 8px, transparent 8px 14px); }
   .trail-fill { inset: 0 0 auto 0; width: auto; height: 0; }
-  .trail-lantern { width: 26px; transform: translate(-50%, -50%); }
-  .workflow { grid-template-columns: 1fr; gap: 26px; }
-  .workflow li { display: grid; grid-template-columns: 52px 1fr; column-gap: 20px; text-align: left; padding: 0; }
-  .workflow .node { grid-row: span 2; margin: 0; }
-  .walk-end { margin-top: 70px; }
+  .workflow { grid-template-columns: 1fr; gap: 18px; }
+  .workflow li { display: grid; grid-template-columns: 52px 1fr; column-gap: 20px; align-items: center; text-align: left; padding: 0; }
+  .workflow .node { margin: 0; }
   .loot { grid-template-columns: 1fr; }
   .loot-side { grid-template-columns: 1fr 1fr; }
   .trophies { grid-template-columns: 1fr; }
-  .inv-grid { grid-template-columns: repeat(2, 1fr); }
-  /* campfire: fire on top, campers two by two */
-  .camp { height: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 34px 10px; padding-top: 220px; }
-  .camp-ground { top: 30px; bottom: auto; height: 190px; }
-  .fire { top: 40px; bottom: auto; width: 120px; }
-  .camper { position: relative; left: auto !important; right: auto !important; bottom: auto !important; }
-  .camper .camper-fig, .camper.back-left .camper-fig, .camper.back-right .camper-fig { height: 130px; }
-  .camper-say { font-size: .95rem; }
+  .bag { grid-template-columns: 1fr; }
+  /* hero cards stack: icon on the left */
+  .trails { grid-template-columns: 1fr; gap: 10px; }
+  .trail { flex-direction: row; align-items: center; gap: 14px; min-height: 0; padding: 14px 18px; }
+  .trail img { height: 34px; margin: 0; }
+  .trail strong { margin: 0; }
+  .trail em { position: static; order: -1; }
+  .trail i { position: static; margin-left: auto; }
+  /* the Journey stage sits under the panel, a little shorter */
+  .stage figcaption { font-size: 1rem; padding: 0 10px; }
+  /* footer: the words, then the campfire, then the dock */
+  .footer { grid-template-columns: 1fr; padding: 64px 20px 100px; align-content: end; }
+  .trail-pin { height: calc(5 * 30vh + 80vh); margin-bottom: 250px; }
+  .walk { top: 14vh; }
   .trail strong { font-size: 1.35rem; }
   .trail small { display: none; }
   .dock a { padding: 6px 9px; font-size: .95rem; }
   .dock a[data-sec="home"], .dock a[data-sec="journey"] { display: none; }
   /* journey: stops become a row of tabs above the pinned panel */
   .jr { height: calc(var(--n, 3) * 60vh + 80vh); }
-  .jr-sticky { top: 70px; grid-template-columns: 1fr; gap: 16px; }
+  .jr-sticky { top: 14px; grid-template-columns: 1fr; gap: 10px; }
+  /* tabs, then the team scene, then the job: all of it has to fit above the dock while pinned */
+  .jr-side { order: -2; }
+  .jr-sticky .stage { order: -1; }
+  .stage #evo-say { display: none; }
+  .jr-panel { padding: 16px 18px 12px; }
+  .jr-panel h3 { font-size: 1.55rem; }
+  .jr-panel .at { margin-bottom: 8px; font-size: 1.1rem; }
+  .jr-panel ul { margin-bottom: 0; padding-left: 16px; }
+  .jr-panel li { margin-bottom: 5px; font-size: .9rem; }
+  .jr-panel .chips { display: none; }
   .jr-rail { display: none; }
   .jr-steps { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
   .jr-step { padding: 8px 8px 8px; border-top: 3px solid var(--line); }

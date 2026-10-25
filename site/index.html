@@ -41,9 +41,18 @@
       <p class="hero-sub" id="hero-sub"></p>
       <p class="trail-label"><span></span>pick a trail<span></span></p>
       <nav class="trails" aria-label="Sections">
-        <a class="trail" href="#workshop"><em>01</em><strong>The Workshop</strong><i aria-hidden="true">→</i></a>
-        <a class="trail" href="#lantern"><em>02</em><strong>Minimum Hand-Holding</strong><small>for HR, founders &amp; CTOs</small><i aria-hidden="true">→</i></a>
-        <a class="trail" href="#trophies"><em>03</em><strong>The Trophy Room</strong><small>don't skip this one</small><i aria-hidden="true">→</i></a>
+        <a class="trail" href="#workshop">
+          <img src="assets/icon-toolbox.png" alt="" width="64" height="64">
+          <em>01</em><strong>The Workshop</strong><small>six things I've shipped</small><i aria-hidden="true">→</i>
+        </a>
+        <a class="trail" href="#lantern">
+          <img src="assets/icon-lantern.png" alt="" width="42" height="64">
+          <em>02</em><strong>Minimum Hand-Holding</strong><small>for HR, founders &amp; CTOs</small><i aria-hidden="true">→</i>
+        </a>
+        <a class="trail" href="#trophies">
+          <img src="assets/icon-trophy.png" alt="" width="60" height="64">
+          <em>03</em><strong>The Trophy Room</strong><small>don't skip this one</small><i aria-hidden="true">→</i>
+        </a>
       </nav>
     </div>
   </header>
@@ -67,7 +76,8 @@
 
       <!-- An RPG-style conversation: pick who you are, I answer -->
       <div class="rpg reveal" id="rpg">
-        <div class="rpg-portrait"><img src="assets/me-portrait.png" alt="Pixel-art Dhruv, smiling" width="360" height="360"></div>
+        <!-- my workshop: pick who you are below and someone walks in with a task for the quest board -->
+        <div class="rpg-scene"><canvas id="rpg-me" role="img" aria-label="Pixel-art Dhruv at his workbench, beside a quest board of finished tasks and one open slot"></canvas></div>
         <div class="rpg-box" id="rpg-box">
           <span class="rpg-name">Dhruv</span>
           <!-- The visible text types out letter by letter, so screen readers skip it
@@ -80,23 +90,21 @@
       </div>
 
       <h3 class="sub-head reveal">How a ticket travels to me</h3>
-      <div class="walk reveal" id="trail">
-        <div class="walk-path">
-          <div class="trail-line"><span class="trail-fill"></span></div>
-          <img class="trail-lantern" src="assets/icon-lantern.png" alt="" width="40" height="62">
-          <ol class="workflow" id="workflow"></ol>
-        </div>
-        <div class="walk-end">
-          <span class="walk-say">shipped ✓<small>what's next?</small></span>
-          <img src="assets/me-full.png" alt="Pixel-art Dhruv waving" width="148" height="320">
+      <!-- the trail stays pinned while the pixel me hops stop to stop, thinking about each one -->
+      <div class="trail-pin" id="trail-pin">
+        <div class="walk" id="trail">
+          <!-- under the stops: the AI crew (Claude, Codex, OpenClaw) and what each stop looks like in practice -->
+          <canvas class="trail-fx" id="trail-fx" aria-hidden="true"></canvas>
+          <div class="walk-path">
+            <div class="trail-line"><span class="trail-fill"></span></div>
+            <ol class="workflow" id="workflow"></ol>
+          </div>
         </div>
       </div>
 
       <h3 class="sub-head reveal">Inventory</h3>
-      <div class="inventory card reveal">
-        <div class="inv-tabs" id="inv-tabs" role="tablist" aria-label="Skill groups"></div>
-        <ul class="inv-grid" id="inv-grid" role="tabpanel"></ul>
-      </div>
+      <!-- Every skill on show at once: one pouch per group, items drop in when it scrolls into view -->
+      <div class="bag" id="bag"></div>
     </section>
 
     <!-- ============ Experience ============ -->
@@ -107,9 +115,18 @@
       </div>
       <div class="jr" id="jr">
         <div class="jr-sticky">
-          <div class="jr-rail"><span class="jr-rail-fill"></span></div>
-          <div class="jr-steps" id="jr-steps"></div>
+          <div class="jr-side">
+            <div class="jr-rail"><span class="jr-rail-fill"></span></div>
+            <div class="jr-steps" id="jr-steps"></div>
+          </div>
           <div class="jr-panels" id="jr-panels"></div>
+          <!-- The team scene for each stop: me with mentors, then a two-person startup, then open source.
+               I level up between them. -->
+          <figure class="stage" id="stage">
+            <canvas id="stage-cv" aria-hidden="true"></canvas>
+            <b class="evo-stamp" aria-hidden="true">LEVEL UP!</b>
+            <figcaption><b id="evo-lv">Lv. 1</b> <span id="evo-name"></span><span class="stage-say" id="evo-say" aria-live="polite"></span></figcaption>
+          </figure>
         </div>
       </div>
     </section>
@@ -141,6 +158,8 @@
         <div><h2>The Commit <span>Garden</span></h2><p>A year of small things growing on GitHub.</p></div>
         <img class="pixel-icon" src="assets/icon-sprout.png" alt="" width="96" height="96">
       </div>
+      <!-- the card stays pinned while the scroll walks him along the bed -->
+      <div class="garden-pin" id="garden-pin">
       <div class="garden card">
         <div class="garden-top">
           <span>Contributions</span>
@@ -148,6 +167,8 @@
         </div>
         <div class="garden-scroll">
           <div class="garden-bed">
+            <!-- the pixel me walks the bed with a watering can; plants grow as he passes -->
+            <canvas class="gardener" id="gardener" aria-hidden="true"></canvas>
             <!-- one little plant per week, as tall as that week's commits -->
             <div class="garden-plants" id="garden-plants" aria-hidden="true"></div>
             <div class="garden-grid" id="garden-grid" role="img" aria-label="GitHub contribution graph"></div>
@@ -158,27 +179,34 @@
           <span class="legend">less <i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i> more</span>
         </div>
       </div>
+      </div>
     </section>
 
-    <!-- ============ Contact ============ -->
-    <section class="section alt" id="campfire">
-      <div class="section-head flip">
-        <div><h2>Sit by the <span>Campfire</span></h2><p>Have a task and basic clarity? That's all I need. Say hi.</p></div>
-        <img class="pixel-icon" src="assets/icon-campfire.png" alt="" width="96" height="96">
-      </div>
-      <div class="camp" id="camp">
-        <div class="camp-ground" aria-hidden="true"></div>
-        <div class="fire" aria-hidden="true">
-          <span class="fire-glow"></span>
-          <img src="assets/icon-campfire.png" alt="">
-          <span class="ember"></span><span class="ember"></span><span class="ember"></span><span class="ember"></span>
-        </div>
-      </div>
-      <p class="camp-mail">or just write to <a id="mail-link"></a></p>
-    </section>
-
-    <footer class="footer">made with chai in Jaipur · art and sounds made for this site</footer>
   </main>
+
+  <!-- ============ Footer: the same valley after dark, with everyone round the campfire ============ -->
+  <footer class="footer" id="footer">
+    <canvas class="footer-sky" id="footer-sky" aria-hidden="true"></canvas>
+    <div class="footer-inner">
+      <p class="footer-kicker">that's the whole trail · pull up a log</p>
+      <h2 class="footer-name">Dhruv Pancholi</h2>
+      <p class="footer-line" id="footer-line"></p>
+      <p class="footer-pitch">Have a task and basic clarity? That's all I need. Say hi.</p>
+      <ul class="footer-links" id="footer-links"></ul>
+      <p class="camp-mail">or just write to <a id="mail-link"></a></p>
+      <a class="footer-top" href="#home">back to the start ↑</a>
+    </div>
+    <!-- the campers' monitor heads are my links; my AI crew sits with us -->
+    <div class="camp" id="camp">
+      <div class="camp-ground" aria-hidden="true"></div>
+      <div class="fire" aria-hidden="true">
+        <span class="fire-glow"></span>
+        <img src="assets/icon-campfire.png" alt="">
+        <span class="ember"></span><span class="ember"></span><span class="ember"></span><span class="ember"></span>
+      </div>
+      <canvas class="camp-crew" id="camp-crew" aria-hidden="true"></canvas>
+    </div>
+  </footer>
 
   <!-- ============ Floating pill nav ============ -->
   <nav class="dock" aria-label="Quick navigation">
@@ -187,7 +215,7 @@
     <a href="#lantern" data-sec="lantern">Why me</a>
     <a href="#journey" data-sec="journey">Journey</a>
     <a href="#trophies" data-sec="trophies">Trophies</a>
-    <a href="#campfire" data-sec="campfire">Say hi</a>
+    <a href="#footer" data-sec="footer">Say hi</a>
     <span class="dock-sep"></span>
     <button class="dock-btn theme" id="theme-btn" type="button" aria-label="Change colours"><span></span></button>
     <button class="dock-btn music" id="music-btn" type="button" aria-pressed="true" aria-label="Mute background sound">
@@ -197,6 +225,7 @@
         <path class="mute" d="M16 9l6 6M22 9l-6 6"/>
       </svg>
     </button>
+    <span class="music-hint" id="music-hint">tap anywhere for sound ♪</span>
   </nav>
 
   <!-- Video player for project demos -->
@@ -205,7 +234,13 @@
     <form method="dialog"><button class="player-close" aria-label="Close video">close ✕</button></form>
   </dialog>
 
+  <!-- The pixel me who travels down the page with you (and the odd thing he says) -->
+  <canvas class="guide" id="guide" aria-hidden="true"></canvas>
+  <p class="guide-say" id="guide-say" aria-hidden="true"></p>
+
   <script src="data.js"></script>
+  <script src="sprite.js"></script>
   <script src="main.js"></script>
+  <script src="guide.js"></script>
 </body>
 </html>

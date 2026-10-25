@@ -27,22 +27,25 @@ $("#hero-sub").textContent = S.tagline;
 
 S.projects.forEach((p) => {
   const card = el("article", "project card reveal");
-  if (p.video) {
-    const thumb = el("button", "thumb");
-    thumb.type = "button";
-    thumb.setAttribute("aria-label", `Play the ${p.name} demo video`);
+  if (p.cover) {
+    // The cover is a capture of the live site. With a demo video it plays the video;
+    // without one it opens the live app.
+    const thumb = el(p.video ? "button" : "a", "thumb");
     const img = el("img");
     img.alt = "";
     img.loading = "lazy";
-    // Not every video has a large thumbnail. A missing size comes back as YouTube's
-    // 120×90 grey placeholder (not always an error), so step down until a real one loads.
-    const sizes = ["maxresdefault", "sddefault", "hqdefault"];
-    const next = () => { const s = sizes.shift(); if (s) img.src = `https://i.ytimg.com/vi/${p.video}/${s}.jpg`; };
-    img.onload = () => { if (img.naturalWidth <= 120 && sizes.length) next(); };
-    img.onerror = next;
-    next();
-    thumb.append(img, el("span", "play"), el("span", "watch", "watch demo"));
-    thumb.addEventListener("click", () => openVideo(p.video, p.name));
+    img.src = p.cover;
+    thumb.append(img);
+    if (p.video) {
+      thumb.type = "button";
+      thumb.setAttribute("aria-label", `Play the ${p.name} demo video`);
+      thumb.append(el("span", "play"), el("span", "watch", "▶ watch demo"));
+      thumb.addEventListener("click", () => openVideo(p.video, p.name));
+    } else {
+      Object.assign(thumb, { href: p.live, target: "_blank", rel: "noopener" });
+      thumb.setAttribute("aria-label", `Open ${p.name}, live`);
+      thumb.append(el("span", "watch", "open live ↗"));
+    }
     card.append(thumb);
   }
   const actions = el("div", "actions");
@@ -110,6 +113,7 @@ function updateJourney() {
   jrSteps.forEach((b, n) => { b.classList.toggle("on", n === i); b.classList.toggle("past", n < i); });
   jrPanels.forEach((a, n) => a.classList.toggle("on", n === i));
   if (r.top < innerHeight && r.bottom > 0) Sound.hover();
+  document.dispatchEvent(new CustomEvent("journeystep", { detail: i })); // guide.js evolves the pixel me
 }
 
 /* ---------- Minimum hand-holding: an RPG-style conversation ---------- */
@@ -144,6 +148,7 @@ const choices = S.pitch.roles.map((r, i) => {
   b.addEventListener("click", () => {
     choices.forEach((c) => c.classList.toggle("picked", c === b));
     Sound.click();
+    document.dispatchEvent(new CustomEvent("rpgpick", { detail: i })); // guide.js walks them into the workshop
     say(`${r.title} ${r.points.join(" ")}`);
   });
   return b;
@@ -156,83 +161,61 @@ new IntersectionObserver((entries, obs) => {
   say(`Hey, I'm Dhruv. ${S.pitch.line} ${S.pitch.tail} So, who's asking?`, () => $("#rpg").classList.add("ask"));
 }, { threshold: 0.6 }).observe($("#rpg"));
 
-/* The trail: a lantern walks the dotted line as you scroll, lighting each stop, and ends at me */
+/* The trail: five short stops. The pixel me hops along them as you scroll (guide.js lights them
+   and shows each detail as his thought); screen readers get the detail straight away. */
 S.workflow.forEach(([t, d], i) => {
   const li = el("li");
-  li.append(el("span", "node", String(i + 1).padStart(2, "0")), el("b", "", t), el("span", "", d));
+  li.append(el("span", "node", String(i + 1).padStart(2, "0")), el("b", "", t), el("span", "sr-only", d));
   $("#workflow").append(li);
 });
-const stops = [...document.querySelectorAll("#workflow li")];
-const nodes = stops.map((s) => s.querySelector(".node"));
-const walkPath = $(".walk-path");
-const lantern = $(".trail-lantern");
-const fill = $(".trail-fill");
-const line = $(".trail-line");
-const meFig = $(".walk-end img");
-let lastLit = -1;
-function updateTrail() {
-  const r = $("#trail").getBoundingClientRect();
-  // 0 when the trail enters the lower part of the screen, 1 once it reaches the upper third
-  const p = Math.min(1, Math.max(0, (innerHeight * 0.85 - r.top) / (innerHeight * 0.55)));
 
-  // The route, in pixels inside the path: each stop's centre, then me at the end.
-  // The lantern rides it, so whatever it has passed is lit (no guessing from p).
-  const base = walkPath.getBoundingClientRect();
-  const pts = nodes.map((n) => {
-    const b = n.getBoundingClientRect();
-    return { x: b.left + b.width / 2 - base.left, y: b.top + b.height / 2 - base.top };
-  });
-  const fig = meFig.getBoundingClientRect();
-  const vertical = pts[1].x === pts[0].x; // phone: the stops run down the page
-  pts.push(vertical
-    ? { x: pts[0].x, y: fig.top - base.top - 24 }
-    : { x: fig.left - base.left + 6, y: pts[0].y });
-  const segs = pts.slice(1).map((q, i) => Math.hypot(q.x - pts[i].x, q.y - pts[i].y));
-  const total = segs.reduce((a, b) => a + b, 0);
-  let left = p * total;
-  let pos = pts[0];
-  let reached = 0;
-  for (let i = 0; i < segs.length; i++) {
-    if (left >= segs[i]) { left -= segs[i]; pos = pts[i + 1]; reached = i + 1; continue; }
-    const k = left / segs[i];
-    pos = { x: pts[i].x + (pts[i + 1].x - pts[i].x) * k, y: pts[i].y + (pts[i + 1].y - pts[i].y) * k };
-    break;
-  }
-  lantern.style.left = `${pos.x}px`;
-  lantern.style.top = `${pos.y}px`;
-  // The solid line follows the lantern
-  const lineBox = line.getBoundingClientRect();
-  if (vertical) fill.style.height = `${Math.max(0, pos.y - (lineBox.top - base.top))}px`;
-  else fill.style.width = `${Math.max(0, pos.x - (lineBox.left - base.left))}px`;
-
-  const lit = p > 0 ? Math.min(reached, stops.length - 1) : -1;
-  stops.forEach((s, i) => s.classList.toggle("lit", i <= lit));
-  if (lit > lastLit) Sound.tick(lit);
-  lastLit = lit;
-  const arrived = p >= 0.999;
-  if (arrived && !$("#trail").classList.contains("done")) Sound.chime();
-  $("#trail").classList.toggle("done", arrived);
-}
-
-/* Inventory: tabs of skill groups, each skill a slot */
-const invTabs = S.tools.map(([group], i) => {
-  const b = el("button", "", group);
-  b.type = "button";
-  b.setAttribute("role", "tab");
-  b.addEventListener("click", () => { showInv(i); Sound.click(); });
-  $("#inv-tabs").append(b);
-  return b;
-});
-function showInv(i) {
-  invTabs.forEach((b, n) => b.setAttribute("aria-selected", String(n === i)));
-  const grid = $("#inv-grid");
-  grid.replaceChildren(...S.tools[i][1].map((name, n) => {
+/* Inventory: every group is a pouch and every skill a slot, all on show at once */
+// 10×10 pixel icons for each pouch ("." = empty)
+const POUCH_ICONS = {
+  Languages: { colors: { k: "#5a4636", p: "#efe2c2", i: "#7a5a3a" }, rows: [ // a scroll
+    ".kkkkkkkk.", "kppppppppk", ".kpiiiipk.", ".kppppppk.", ".kpiiiipk.", ".kppppppk.", ".kpiiipk..", "kppppppppk", ".kkkkkkkk.", "..........",
+  ] },
+  Backend: { colors: { k: "#3b4150", g: "#8d97a8", d: "#5d6678" }, rows: [ // a gear
+    "....kk....", "..k.gg.k..", ".kggggggk.", "..gdkkdg..", "kggk..kggk", "kggk..kggk", "..gdkkdg..", ".kggggggk.", "..k.gg.k..", "....kk....",
+  ] },
+  Data: { colors: { k: "#4b3a2c", w: "#b98a55", b: "#8a6238" }, rows: [ // a barrel
+    "..kkkkkk..", ".kwwwwwwk.", "kbbbbbbbbk", "kwwwwwwwwk", "kwwwwwwwwk", "kbbbbbbbbk", "kwwwwwwwwk", "kbbbbbbbbk", ".kwwwwwwk.", "..kkkkkk..",
+  ] },
+  Frontend: { colors: { k: "#2f3a4a", s: "#bfe3f2", b: "#e9a03b", w: "#f6efe0" }, rows: [ // a browser window
+    "kkkkkkkkkk", "kbwbsssssk", "kkkkkkkkkk", "kssssssssk", "kskkkksssk", "kssssssssk", "kskkkkkksk", "kssssssssk", "kskkkssssk", "kkkkkkkkkk",
+  ] },
+  Web3: { colors: { k: "#2d2b48", a: "#8b7fd6", b: "#5d52a8", c: "#c9c2f2" }, rows: [ // a cube
+    "....kk....", "..kkcckk..", "kkcccccckk", "kaakccbbbk", "kaaakkbbbk", "kaaaakbbbk", "kaaaakbbbk", "kkaaakbbkk", "..kkakbk..", "....kk....",
+  ] },
+  AI: { colors: { k: "#5b2e3e", p: "#f29bb5", d: "#d06a8b", y: "#ffe08a" }, rows: [ // a brain with a spark
+    "...kkkk..y", ".kkppppk.y", "kppdppdpky", "kpdpppppk.", "kppppdppk.", "kpdpppdpk.", ".kppdppk..", "..kkppk...", "....kk....", "..........",
+  ] },
+};
+const bag = $("#bag");
+S.tools.forEach(([group, items]) => {
+  const pouch = el("section", "pouch card");
+  const head = el("div", "pouch-head");
+  if (POUCH_ICONS[group]) head.append(pixelLogo(POUCH_ICONS[group], 10));
+  head.append(el("b", "", group), el("small", "", `${items.length} items`));
+  const ul = el("ul", "slots");
+  items.forEach((name, n) => {
     const li = el("li", "slot", name);
-    li.style.animationDelay = `${n * 40}ms`;
-    return li;
-  }));
-}
-showInv(0);
+    li.style.setProperty("--d", `${n * 55}ms`);
+    ul.append(li);
+  });
+  pouch.append(head, ul);
+  bag.append(pouch);
+});
+// Items drop into each pouch when it scrolls into view, with a soft pickup blip
+const pouchIn = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    if (!e.isIntersecting) return;
+    pouchIn.unobserve(e.target);
+    e.target.classList.add("open");
+    [...e.target.querySelectorAll(".slot")].forEach((_, n) => setTimeout(() => Sound.blip(880 + n * 60, 1200 + n * 60, 0.05, 0.018, "square"), n * 55));
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll(".pouch").forEach((p) => pouchIn.observe(p));
 
 /* ---------- Trophy room ---------- */
 const money = (n) => `$${n.toLocaleString("en-US")}`;
@@ -297,10 +280,10 @@ const LOGOS = {
     "kppppkkppppk", "kppppppppppk", "kppppppppppk", "kkkkkkkkkkkk", "............", "............",
   ] },
 };
-function pixelLogo({ colors, rows }) {
+function pixelLogo({ colors, rows }, size = 12) {
   const ns = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(ns, "svg");
-  svg.setAttribute("viewBox", "0 0 12 12");
+  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   svg.setAttribute("shape-rendering", "crispEdges");
   svg.setAttribute("aria-hidden", "true");
   rows.forEach((row, y) => [...row].forEach((c, x) => {
@@ -343,6 +326,23 @@ CAMPERS.forEach((c) => {
 $("#mail-link").textContent = S.links.email;
 $("#mail-link").href = `mailto:${S.links.email}`;
 
+/* ---------- Footer: name, one line, the links ---------- */
+$("#footer-line").textContent = `${S.tagline.replace(/\.$/, "")} · Jaipur, India`;
+[
+  ["GitHub", `https://github.com/${S.links.github}`, LOGOS.github],
+  ["LinkedIn", `https://www.linkedin.com/in/${S.links.linkedin}`, LOGOS.linkedin],
+  ["X", `https://x.com/${S.links.x}`, LOGOS.x],
+  ["Email", `mailto:${S.links.email}`, LOGOS.email],
+].forEach(([label, href, logo]) => {
+  const a = el("a");
+  a.href = href;
+  if (!href.startsWith("mailto:")) { a.target = "_blank"; a.rel = "noopener"; }
+  a.append(pixelLogo(logo), el("span", "", label));
+  const li = el("li");
+  li.append(a);
+  $("#footer-links").append(li);
+});
+
 /* ---------- Reveal on scroll ---------- */
 const revealer = new IntersectionObserver((entries) => {
   entries.forEach((e) => {
@@ -357,7 +357,7 @@ document.querySelectorAll(".reveal").forEach((n) => revealer.observe(n));
 
 /* ---------- Dock: highlight the section on screen ---------- */
 const dockLinks = [...document.querySelectorAll(".dock a")];
-const sectionFor = { home: "home", workshop: "workshop", lantern: "lantern", journey: "journey", trophies: "trophies", garden: "trophies", campfire: "campfire" };
+const sectionFor = { home: "home", workshop: "workshop", lantern: "lantern", journey: "journey", trophies: "trophies", garden: "trophies", footer: "footer" };
 const spy = new IntersectionObserver((entries) => {
   entries.forEach((e) => {
     if (!e.isIntersecting) return;
@@ -365,7 +365,7 @@ const spy = new IntersectionObserver((entries) => {
     dockLinks.forEach((a) => a.classList.toggle("active", a.dataset.sec === key));
   });
 }, { rootMargin: "-45% 0px -50% 0px" });
-document.querySelectorAll("#home, main section").forEach((s) => spy.observe(s));
+document.querySelectorAll("#home, main section, #footer").forEach((s) => spy.observe(s));
 
 /* ---------- Theme ---------- */
 const THEMES = ["meadow", "pinkcity", "lake"];
@@ -411,6 +411,49 @@ const pollen = {
       ph: Math.random() * 6.3,
       flap: 5 + Math.random() * 3,
     }));
+    // Two kites over the valley (it's Jaipur) and a hot-air balloon drifting past the hills.
+    // Positions are fractions of the hero, so they stay in the open sky at any size.
+    const px = r.width < 760 ? 2 : 3;
+    this.kites = reduceMotion ? [] : [
+      { fx: 0.13, fy: 0.2, ax: -0.05, a: "#c0473a", b: "#e86f55", ph: 0, px },
+      { fx: 0.87, fy: 0.15, ax: 1.06, a: "#2f6f86", b: "#5da3b8", ph: 2.1, px },
+    ];
+    this.balloon = reduceMotion ? null : { x: r.width * 0.05, fy: 0.42, px };
+  },
+  KITE: ["....o....", "...oao...", "..oaabo..", ".oaaabbo.", "oaaaabbbo", ".oaaabbo.", "..oaabo..", "...oao...", "....o...."],
+  BALLOON: ["..ooooo..", ".oabbbao.", "oaabbbaao", "oaabbbaao", "oaabbbaao", ".oabbbao.", "..oabao..", "...oao...", "...o.o...", "...kkk...", "...kkk..."],
+  sprite(rows, colors, x, y, px) {
+    const c = this.ctx;
+    rows.forEach((row, ry) => [...row].forEach((ch, rx) => {
+      if (!colors[ch]) return;
+      c.fillStyle = colors[ch];
+      c.fillRect(Math.round(x + rx * px), Math.round(y + ry * px), px, px);
+    }));
+  },
+  drawSky(t) {
+    const c = this.ctx;
+    for (const k of this.kites) {
+      const x = this.w * k.fx + Math.sin(t * 0.7 + k.ph) * 10;
+      const y = this.h * k.fy + Math.cos(t * 1.1 + k.ph) * 6;
+      const tipX = x + 4 * k.px, tipY = y + 8 * k.px;
+      // the string sags down to someone on a rooftop below the screen
+      c.strokeStyle = "rgba(60, 40, 35, .35)";
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(tipX, tipY);
+      c.quadraticCurveTo((tipX + this.w * k.ax) / 2, this.h * 0.9, this.w * k.ax, this.h * 1.05);
+      c.stroke();
+      // a wiggling tail of little squares
+      c.fillStyle = k.a;
+      for (let i = 1; i <= 5; i++) c.fillRect(Math.round(tipX + Math.sin(t * 3 + i + k.ph) * 3 * k.px), Math.round(tipY + i * 2 * k.px), k.px, k.px);
+      this.sprite(this.KITE, { o: "#4a2c28", a: k.a, b: k.b }, x, y, k.px);
+    }
+    const b = this.balloon;
+    if (b) {
+      b.x += 0.12;
+      if (b.x > this.w + 40) b.x = -40;
+      this.sprite(this.BALLOON, { o: "#5a2f28", a: "#c0473a", b: "#f1bf45", k: "#6b4a32" }, b.x, this.h * b.fy + Math.sin(t * 0.4) * 5, b.px);
+    }
   },
   // 5×3 pixel sprites: wings up, wings level
   WINGS: [
@@ -446,18 +489,14 @@ const pollen = {
       c.fillStyle = `rgba(255, 238, 180, ${a.toFixed(3)})`;
       c.fillRect(Math.round(p.x), Math.round(p.y), size, size);
     }
+    this.t = (this.t || 0) + dt;
+    this.drawSky(this.t);
     this.drawBirds(dt);
   },
 };
-// The trail and the journey only need measuring while they're on (or near) the screen.
-// When one leaves, it gets one last update so it settles in its final state.
-const onScreen = { trail: false, journey: false };
-new IntersectionObserver((entries) => {
-  entries.forEach((e) => {
-    onScreen.trail = e.isIntersecting;
-    if (!e.isIntersecting) updateTrail();
-  });
-}, { rootMargin: "200px 0px" }).observe($("#trail"));
+// The journey only needs measuring while it's on (or near) the screen.
+// When it leaves, it gets one last update so it settles in its final state.
+const onScreen = { journey: false };
 new IntersectionObserver((entries) => {
   entries.forEach((e) => {
     onScreen.journey = e.isIntersecting;
@@ -470,7 +509,6 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   const y = scrollY;
-  if (onScreen.trail) updateTrail();
   if (onScreen.journey) updateJourney();
   if (y < innerHeight * 1.2) {
     if (!reduceMotion) heroArt.style.transform = `translate3d(0, ${(y * 0.3).toFixed(1)}px, 0) scale(${(1.04 + y * 0.00008).toFixed(4)})`;
@@ -534,27 +572,34 @@ function plantGarden(data, live) {
     } else {
       plant.className = "tuft";
     }
-    plant.style.transitionDelay = `${w * 14}ms`;
     plant.title = `${n} contribution${n === 1 ? "" : "s"} that week`;
+    // the data can arrive after the watering walk is over: then the bed is simply grown
+    if (reduceMotion || $("#garden").classList.contains("watered")) plant.classList.add("wet");
     bed.append(plant);
   });
   $(".garden-scroll").scrollLeft = 9999;
 }
 
-// The garden grows when it scrolls into view: the sprout first, then the plants, left to right
+// The garden grows when it scrolls into view: the sprout first, then each plant as the
+// pixel me waters it (guide.js). With reduced motion, everything is simply grown.
 new IntersectionObserver((entries, obs) => {
   if (!entries[0].isIntersecting) return;
   obs.disconnect();
   $("#garden").classList.add("grow");
+  if (reduceMotion) document.querySelectorAll(".garden-plants i").forEach((p) => p.classList.add("wet"));
+  else document.dispatchEvent(new Event("gardenopen"));
 }, { threshold: 0.35 }).observe($("#garden"));
 
 /* ---------- Sound: the bird track in the background + tiny UI sounds ---------- */
 // Played exactly like the reference site: the untouched recording, looping at volume 0.1.
-// It tries to start right away; browsers usually block that, so it starts on the first
-// click, touch or key press instead. The speaker button pauses and plays it.
+// Browsers block sound until the first click, tap or key press (scrolling doesn't count),
+// so it starts on that first gesture. The speaker shows what is really happening: it's lit
+// only while the birds are actually playing, and pressing it always does what it shows.
 const birds = new Audio(new Audio().canPlayType("audio/ogg") ? "assets/birds.ogg" : "assets/birds.mp3");
+birds.preload = "auto";
 birds.loop = true;
 birds.volume = 0.1;
+birds.load(); // fetch it now, so it's ready the moment the browser lets it play
 
 const Sound = {
   on: false,
@@ -601,26 +646,34 @@ const Sound = {
 };
 
 const soundBtn = $("#music-btn");
-let muted = store.get("muted") === "1";
+let muted = store.get("muted") === "1"; // the visitor's choice, remembered
+const playing = () => Sound.on && !birds.paused;
 function showSoundState() {
-  soundBtn.setAttribute("aria-pressed", String(!muted));
-  soundBtn.setAttribute("aria-label", muted ? "Unmute background sound" : "Mute background sound");
+  const on = playing();
+  soundBtn.setAttribute("aria-pressed", String(on));
+  soundBtn.setAttribute("aria-label", on ? "Mute background sound" : "Play background sound");
 }
 showSoundState();
+["playing", "pause"].forEach((ev) => birds.addEventListener(ev, showSoundState));
 soundBtn.addEventListener("click", () => {
-  muted = !muted;
+  // silent (blocked or muted) → sound on; playing → mute. One press, never two.
+  muted = playing();
   store.set("muted", muted ? "1" : "0");
-  showSoundState();
   Sound.set(!muted);
+  showSoundState();
 });
-// The birds start with the first tap or key press (browsers block sound before that)
+// The first gesture anywhere wakes the sound. pointerdown fires before click, so it's sooner,
+// and listening in the capture phase means nothing on the page can swallow it.
+const WAKE = ["pointerdown", "touchstart", "keydown"];
 function wake(e) {
+  WAKE.forEach((ev) => removeEventListener(ev, wake, true));
+  hint.classList.remove("on");
   if (e.target.closest?.("#music-btn")) return; // the button handles itself
-  ["click", "touchstart", "keydown"].forEach((ev) => removeEventListener(ev, wake));
   if (!muted) Sound.set(true);
 }
-["click", "touchstart", "keydown"].forEach((ev) => addEventListener(ev, wake));
-if (!muted) birds.play().then(() => { Sound.on = true; }).catch(() => {}); // works only if the browser allows it
+WAKE.forEach((ev) => addEventListener(ev, wake, true));
+// some browsers allow sound straight away (on a site you've used before); then it just plays
+if (!muted) birds.play().then(() => { Sound.set(true); showSoundState(); }).catch(() => {});
 
 // Tiny sounds on things you can press (only while sound is on)
 let lastHover = 0;
@@ -635,3 +688,22 @@ document.addEventListener("pointerover", (e) => {
 document.addEventListener("click", (e) => {
   if (e.target.closest("a, .trail")) Sound.click();
 });
+// Sounds guide.js plays when the pixel me does something
+Object.assign(Sound, {
+  jump() { this.blip(320, 760, 0.12, 0.035, "square"); },
+  thud() { this.blip(180, 70, 0.12, 0.06, "triangle"); },
+  pew() { this.blip(1800, 420, 0.16, 0.04, "square"); },
+  whoosh() { this.blip(900, 220, 0.3, 0.03, "sine"); },
+  zip() { this.blip(420, 1500, 0.45, 0.022, "sawtooth"); },
+  bonk() { this.blip(260, 90, 0.22, 0.06, "square"); },
+  poof() { this.blip(1300, 300, 0.2, 0.03, "triangle"); },
+});
+
+// While the page is still silent, the first scroll shows a small hint by the speaker
+const hint = $("#music-hint");
+addEventListener("scroll", function firstScroll() {
+  removeEventListener("scroll", firstScroll);
+  if (muted || playing()) return;
+  hint.classList.add("on");
+  setTimeout(() => hint.classList.remove("on"), 6000);
+}, { passive: true });

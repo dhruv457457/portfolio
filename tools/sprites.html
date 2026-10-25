@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Sprite sheet</title>
+<!-- Dev only: every pose, frame and form of the pixel me, to check the drawing. -->
+<style>
+  body { margin: 16px; background: #c9d6b0; font: 12px monospace; }
+  .row { display: flex; gap: 8px; align-items: end; margin-bottom: 6px; }
+  .row b { width: 70px; }
+  canvas { background: #e8e1cc; image-rendering: pixelated; }
+</style>
+<div id="out"></div>
+<script src="../site/sprite.js"></script>
+<script>
+  const out = document.getElementById("out");
+  // ?s=10 for a bigger view, ?p=wave,sit to show only some poses
+  const q = new URLSearchParams(location.search);
+  const SCALE = Number(q.get("s")) || 4;
+  const only = q.get("p")?.split(",");
+  for (const form of ["lv2", "lv1", "lv3"]) {
+    for (const pose of PixelMe.poses) {
+      if (only && !only.includes(pose)) continue;
+      if (form !== "lv2" && pose !== "idle" && pose !== "walk") continue;
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `<b>${form} ${pose}</b>`;
+      for (let f = 0; f < PixelMe.count(pose); f++) {
+        const cv = document.createElement("canvas");
+        cv.width = PixelMe.W * SCALE;
+        cv.height = PixelMe.H * SCALE;
+        PixelMe.draw(cv.getContext("2d"), { pose, frame: f, form, x: (PixelMe.OX + 12) * SCALE, y: (PixelMe.OY + 31) * SCALE, scale: SCALE });
+        row.append(cv);
+      }
+      out.append(row);
+    }
+  }
+</script>

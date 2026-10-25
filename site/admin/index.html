@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Portfolio admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <!-- Sign in -->
+  <main class="login" id="login" hidden>
+    <form class="card" id="login-form" autocomplete="on">
+      <h1>Portfolio admin</h1>
+      <p class="muted">Edit projects, experience, achievements, skills and socials.</p>
+      <label>Email <input type="email" name="email" autocomplete="username" required maxlength="254"></label>
+      <label>Password <input type="password" name="password" autocomplete="current-password" required maxlength="256"></label>
+      <label id="code-row" hidden>Authenticator code <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="\d{6}" maxlength="6"></label>
+      <button type="submit" class="primary">Sign in</button>
+      <p class="msg" id="login-msg" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- The editor -->
+  <div class="app" id="app" hidden>
+    <header class="bar">
+      <strong>Portfolio admin</strong>
+      <nav class="tabs" id="tabs" role="tablist"></nav>
+      <span class="status" id="status" role="status"></span>
+      <button type="button" class="primary" id="save" disabled>Save</button>
+      <a class="ghost" href="/" target="_blank" rel="noopener">View site ↗</a>
+      <button type="button" class="ghost" id="logout">Sign out</button>
+    </header>
+    <main class="editor" id="editor"></main>
+    <div class="problems" id="problems" hidden></div>
+  </div>
+
+  <script src="schema.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
