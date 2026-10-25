@@ -144,37 +144,73 @@ S.projects.forEach((p, i) => {
   $("#projects").append(card);
 });
 
-/* ---------- The Workshop: one row of every project, sliding sideways as you scroll down ---------- */
-// The stage stays pinned while the page scrolls; the row moves WS_K px for every px of scroll the other
-// way round (the row travels further than you scroll), so a dozen projects cost little scrolling.
+/* ---------- The Workshop: one row of every project ---------- */
+// On a desktop the stage stays pinned and scrolling down slides the row (WS_K px of scroll per px it
+// moves); a sideways trackpad swipe or the arrows move it too. On a phone or any touch screen it is
+// simply a row you swipe, the cards snapping into place, and nothing pins.
 const wsPin = $("#ws-pin"), wsStage = $("#ws-stage"), wsWindow = $(".ws-window"), wsTrack = $("#projects");
 const WS_K = 0.5; // px of scroll per px the row moves
+const wsTouch = matchMedia("(max-width: 759px), (pointer: coarse)");
+const wsPinned = () => !wsTouch.matches;
 let wsTravel = 0;
 function layoutWorkshop() {
   // the row starts (and, at the end, finishes) in line with the heading, wherever that sits
-  const head = $("#workshop .section-head").getBoundingClientRect();
-  wsTrack.style.setProperty("--lead", `${Math.max(16, Math.round(head.left))}px`);
+  const lead = `${Math.max(16, Math.round($("#workshop .section-head").getBoundingClientRect().left))}px`;
+  wsTrack.style.setProperty("--lead", lead);
+  wsWindow.style.setProperty("--lead", lead);
+  wsStage.classList.toggle("swipe", !wsPinned());
+  $(".ws-hint").textContent = wsPinned() ? "scroll ↓ or swipe sideways" : "swipe →";
+  if (!wsPinned()) {
+    wsPin.style.height = "";
+    wsTrack.style.transform = "";
+    return showWorkshop(rowProgress());
+  }
   wsTravel = Math.max(0, wsTrack.offsetWidth - wsWindow.clientWidth);
   wsPin.style.height = `${wsStage.offsetHeight + wsTravel * WS_K}px`;
   moveWorkshop();
 }
-function moveWorkshop() {
-  const r = wsPin.getBoundingClientRect(), span = Math.max(1, wsPin.offsetHeight - wsStage.offsetHeight);
-  const p = Math.min(1, Math.max(0, ((parseFloat(getComputedStyle(wsStage).top) || 0) - r.top) / span));
-  wsTrack.style.transform = `translateX(${(-p * wsTravel).toFixed(1)}px)`;
+// how far along the row is, 0 to 1, and the counter and bar to match
+const rowProgress = () => { const max = wsWindow.scrollWidth - wsWindow.clientWidth; return max > 0 ? wsWindow.scrollLeft / max : 0; };
+function showWorkshop(p) {
   const cards = wsTrack.querySelectorAll(".project"), at = Math.min(cards.length, 1 + Math.round(p * (cards.length - 1)));
   $("#ws-count").textContent = `${at} / ${cards.length}`;
   $("#ws-fill").style.width = `${(p * 100).toFixed(1)}%`;
+  $("#ws-prev").disabled = p < 0.01;
+  $("#ws-next").disabled = p > 0.99;
   wsStage.classList.toggle("ended", p > 0.98);
+}
+function moveWorkshop() {
+  if (!wsPinned()) return;
+  const r = wsPin.getBoundingClientRect(), span = Math.max(1, wsPin.offsetHeight - wsStage.offsetHeight);
+  const p = Math.min(1, Math.max(0, ((parseFloat(getComputedStyle(wsStage).top) || 0) - r.top) / span));
+  wsTrack.style.transform = `translateX(${(-p * wsTravel).toFixed(1)}px)`;
+  showWorkshop(p);
 }
 let wsTick = 0;
 addEventListener("scroll", () => { if (!wsTick) wsTick = requestAnimationFrame(() => { wsTick = 0; moveWorkshop(); }); }, { passive: true });
+wsWindow.addEventListener("scroll", () => { if (!wsPinned()) showWorkshop(rowProgress()); }, { passive: true });
+// a sideways trackpad swipe over the row scrolls the page for it, so the row follows your fingers
+// (passive: it never holds up the page's own scrolling)
+wsWindow.addEventListener("wheel", (e) => {
+  if (wsPinned() && Math.abs(e.deltaX) > Math.abs(e.deltaY)) scrollBy(0, e.deltaX * WS_K);
+}, { passive: true });
+// the arrows step one card either way
+function stepWorkshop(dir) {
+  const card = wsTrack.querySelector(".project"), step = card ? card.offsetWidth + 22 : 400;
+  const behavior = reduceMotion ? "auto" : "smooth";
+  if (wsPinned()) scrollBy({ top: dir * step * WS_K, behavior });
+  else wsWindow.scrollBy({ left: dir * step, behavior });
+}
+$("#ws-prev").addEventListener("click", () => stepWorkshop(-1));
+$("#ws-next").addEventListener("click", () => stepWorkshop(1));
 addEventListener("resize", layoutWorkshop);
+wsTouch.addEventListener?.("change", layoutWorkshop);
 document.fonts?.ready.then(layoutWorkshop);
-// tabbing onto a card scrolls the page to the spot where that card is in view
+// tabbing onto a card while the row is pinned scrolls the page to where that card is in view
+// (a swipeable row brings a focused card into view by itself)
 wsTrack.addEventListener("focusin", (e) => {
   const card = e.target.closest(".project, .side-quests");
-  if (!card || !wsTravel) return;
+  if (!card || !wsTravel || !wsPinned()) return;
   const lead = parseFloat(getComputedStyle(wsTrack).paddingLeft) || 0;
   const want = Math.min(1, Math.max(0, (card.offsetLeft - lead) / wsTravel));
   const top = wsPin.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(wsStage).top) || 0);
@@ -307,7 +343,10 @@ new IntersectionObserver((entries, obs) => {
    and shows each detail as his thought); screen readers get the detail straight away. */
 S.workflow.forEach(([t, d], i) => {
   const li = el("li");
-  li.append(el("span", "node", String(i + 1).padStart(2, "0")), el("b", "", t), el("span", "sr-only", d));
+  // on a phone the stop he's on shows its line under the title (no room for his thought cloud there)
+  const line = el("span", "stop-detail", d);
+  line.setAttribute("aria-hidden", "true");
+  li.append(el("span", "node", String(i + 1).padStart(2, "0")), el("b", "", t), el("span", "sr-only", d), line);
   $("#workflow").append(li);
 });
 
@@ -847,5 +886,5 @@ addEventListener("scroll", function firstScroll() {
   removeEventListener("scroll", firstScroll);
   if (muted || playing()) return;
   hint.classList.add("on");
-  setTimeout(() => hint.classList.remove("on"), 6000);
+  setTimeout(() => hint.classList.remove("on"), 4000);
 }, { passive: true });

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dhruv Pancholi · Full Stack Developer</title>
+  <title>Dhruv Pancholi · Portfolio</title>
   <meta name="description" content="Dhruv Pancholi, a backend-focused full-stack developer who ships with AI.">
   <meta name="theme-color" content="#f5f2ea">
   <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -14,18 +14,20 @@
        If the domain changes, update og:url, og:image, twitter:image and the canonical link. -->
   <link rel="canonical" href="https://dhruvpanch0li.vercel.app/">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Dhruv Pancholi">
   <meta property="og:url" content="https://dhruvpanch0li.vercel.app/">
-  <meta property="og:title" content="Dhruv Pancholi · Full Stack Developer">
-  <meta property="og:description" content="Backend-focused, ships with AI, needs minimum hand-holding. 10+ hackathon wins.">
-  <meta property="og:image" content="https://dhruvpanch0li.vercel.app/assets/og.jpg">
+  <meta property="og:title" content="Dhruv Pancholi · Portfolio">
+  <meta property="og:description" content="Backend-focused full-stack developer. Founding engineer at deden.space, 11 projects shipped, 10+ hackathon wins.">
+  <meta property="og:image" content="https://dhruvpanch0li.vercel.app/assets/og-card.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="A pixel-art valley at sunset with a Jaipur hill fort">
+  <meta property="og:image:alt" content="Dhruv Pancholi's portfolio: backend-focused full-stack developer, drawn in pixel art with his AI crew">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@dhruvpanch0li">
-  <meta name="twitter:title" content="Dhruv Pancholi · Full Stack Developer">
-  <meta name="twitter:description" content="Backend-focused, ships with AI, needs minimum hand-holding. 10+ hackathon wins.">
-  <meta name="twitter:image" content="https://dhruvpanch0li.vercel.app/assets/og.jpg">
+  <meta name="twitter:title" content="Dhruv Pancholi · Portfolio">
+  <meta name="twitter:description" content="Backend-focused full-stack developer. Founding engineer at deden.space, 11 projects shipped, 10+ hackathon wins.">
+  <meta name="twitter:image" content="https://dhruvpanch0li.vercel.app/assets/og-card.jpg">
+  <meta name="twitter:image:alt" content="Dhruv Pancholi's portfolio: backend-focused full-stack developer, drawn in pixel art with his AI crew">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Silkscreen&family=VT323&display=swap">
@@ -71,7 +73,13 @@
             <img class="pixel-icon" src="assets/icon-toolbox.png" alt="" width="96" height="96">
           </div>
           <div class="ws-window"><div class="projects" id="projects"></div></div>
-          <div class="ws-progress" aria-hidden="true"><span id="ws-count"></span><b class="ws-bar"><i id="ws-fill"></i></b><span class="ws-hint">scroll ↓ to slide</span></div>
+          <div class="ws-progress">
+            <button type="button" id="ws-prev" aria-label="Previous project">◀</button>
+            <span id="ws-count" aria-hidden="true"></span>
+            <b class="ws-bar" aria-hidden="true"><i id="ws-fill"></i></b>
+            <button type="button" id="ws-next" aria-label="Next project">▶</button>
+            <span class="ws-hint" aria-hidden="true"></span>
+          </div>
         </div>
       </div>
     </section>

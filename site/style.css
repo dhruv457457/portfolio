@@ -269,6 +269,37 @@ main { position: relative; }
 .ws-bar { flex: 1; max-width: 420px; height: 12px; padding: 2px; border: 2px solid var(--ink); border-radius: 3px; background: var(--bg); }
 .ws-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
 .ws-hint { transition: opacity .4s; }
+.ws-progress button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 28px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--ink);
+  font: 400 .8rem var(--pixel);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, opacity .2s;
+}
+.ws-progress button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+.ws-progress button:disabled { opacity: .35; cursor: default; }
+/* phones and touch screens: a row you swipe, cards snapping into place, and no pinning */
+.ws-stage.swipe { position: static; }
+.ws-stage.swipe .ws-window {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--lead, 16px);
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.ws-stage.swipe .ws-window::-webkit-scrollbar { display: none; }
+.ws-stage.swipe .projects { transform: none !important; }
+.ws-stage.swipe .projects > * { scroll-snap-align: start; }
+/* a sideways swipe over the row must never turn into the browser's back/forward gesture */
+html { overscroll-behavior-x: none; }
 .ws-stage.ended .ws-hint { opacity: 0; }
 /* a short laptop screen: drop the tagline and pin higher, so the progress bar clears the dock */
 @media (min-width: 760px) and (max-height: 820px) {
@@ -451,6 +482,8 @@ main { position: relative; }
   transition: transform .15s, box-shadow .15s;
 }
 .project .actions .btn.ghost { background: var(--card); color: var(--ink); }
+.projects .actions { gap: 8px; }
+.projects .actions .btn { padding: 6px 11px 5px; font-size: 1.2rem; } /* three buttons fit one row on a narrow card */
 .project .actions .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
 .project .actions .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
 .btn {
@@ -705,6 +738,8 @@ main { position: relative; }
 }
 .workflow b { display: block; font: 400 1.35rem/1.1 var(--serif); }
 .workflow li.lit .node { animation: stomp .3s ease-out 1; } /* a little squash when he lands on it */
+.stop-detail { display: none; }
+@keyframes stop-in { from { opacity: 0; transform: translateY(-4px); } }
 @keyframes stomp { 40% { transform: scaleY(.86) translateY(3px); } }
 
 /* ---------- Inventory: every skill on show, one pouch per group ---------- */
@@ -1082,12 +1117,13 @@ main { position: relative; }
 /* ---------- Phone ---------- */
 @media (max-width: 760px) {
   .section { padding: 84px 20px; }
-  .section-head, .section-head.flip { flex-direction: column-reverse; align-items: flex-start; text-align: left; gap: 14px; }
-  .pixel-icon { width: 64px; }
+  /* the icon sits beside the title, not on a row of its own */
+  .section-head, .section-head.flip { flex-direction: row-reverse; justify-content: flex-end; align-items: center; text-align: left; gap: 12px; }
+  .pixel-icon { width: 52px; }
   /* the whole pinned stage has to fit above the dock: a short heading, two chips, smaller buttons */
   .ws-stage .section-head { margin-bottom: 10px; }
   .ws-stage .section-head p, .ws-stage .section-head .pixel-icon { display: none; }
-  .ws-hint { display: none; }
+  .ws-window { -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent); mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent); }
   .projects .project-body { padding: 14px 16px 16px; }
   .projects .chips li:nth-child(n + 3) { display: none; }
   .projects .project h3 { font-size: 1.7rem; }
@@ -1101,10 +1137,15 @@ main { position: relative; }
   .trail-fill { inset: 0 0 auto 0; width: auto; height: 0; }
   .workflow { grid-template-columns: 1fr; gap: 18px; }
   .workflow li { display: grid; grid-template-columns: 52px 1fr; column-gap: 20px; align-items: center; text-align: left; padding: 0; }
-  .workflow .node { margin: 0; }
+  .workflow .node { margin: 0; grid-row: 1 / span 2; }
+  .workflow li.now .stop-detail { display: block; grid-column: 2; margin-top: 4px; font: italic 1rem/1.35 var(--serif); color: var(--muted); animation: stop-in .35s ease-out; }
   .loot { grid-template-columns: 1fr; }
   .loot-side { grid-template-columns: 1fr 1fr; }
-  .trophies { grid-template-columns: 1fr; }
+  /* the trophies become one row you swipe, the next card peeking in from the right */
+  .trophies { display: flex; gap: 12px; margin: 0 -20px; padding: 4px 20px 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .trophies::-webkit-scrollbar { display: none; }
+  .trophy { flex: none; width: 78vw; max-width: 320px; scroll-snap-align: start; }
+  .trophies .reveal { transition-delay: 0s !important; } /* a card swiped in shows at once */
   .bag { grid-template-columns: 1fr; }
   /* hero cards stack: icon on the left */
   .trails { grid-template-columns: 1fr; gap: 10px; }

@@ -462,7 +462,7 @@
   function lightTrail(lit, st, inTrail, now) {
     if (lit !== G.lit) {
       if (lit > G.lit && G.lit > -2) Sound.tick(Math.max(0, lit));
-      EL.stops.forEach((li, i) => li.classList.toggle("lit", i <= lit));
+      EL.stops.forEach((li, i) => { li.classList.toggle("lit", i <= lit); li.classList.toggle("now", i === lit); });
       EL.trail.classList.toggle("done", lit >= EL.stops.length - 1);
       G.lit = lit;
       G.litAt = now;
@@ -629,14 +629,16 @@
     ctx.filter = "none";
 
     // what he says (inventory) or thinks (each trail stop)
-    const say = st.say || st.think;
+    // (on a phone the cloud would cover the stops, so the stop shows its own line instead)
+    const think = innerWidth < 760 ? "" : st.think;
+    const say = st.say || think;
     if (say) {
-      if (st.think) { if (G.say.textContent !== st.think) G.say.textContent = st.think; }
+      if (think) { if (G.say.textContent !== think) G.say.textContent = think; }
       else words(G.say, st.say);
-      G.say.className = `guide-say on${st.think ? " cloud" : ""}`;
+      G.say.className = `guide-say on${think ? " cloud" : ""}`;
       const w = G.say.offsetWidth, h = G.say.offsetHeight;
-      const left = st.think ? clamp(st.x - w / 2, 8, innerWidth - w - 8) : st.x > innerWidth / 2 ? st.x - w - 30 : st.x + 30;
-      G.say.style.transform = `translate(${Math.round(left)}px, ${Math.round(st.y - 33 * scale - h - (st.think ? 18 : -10))}px)`;
+      const left = think ? clamp(st.x - w / 2, 8, innerWidth - w - 8) : st.x > innerWidth / 2 ? st.x - w - 30 : st.x + 30;
+      G.say.style.transform = `translate(${Math.round(left)}px, ${Math.round(st.y - 33 * scale - h - (think ? 18 : -10))}px)`;
     } else G.say.className = "guide-say";
   }
 
@@ -748,6 +750,8 @@
     trailFx.extra = innerWidth < 760 ? 230 : 250; // the strip under the stops where the crew stand
     trailFx.c = sized(trailFx.el, b.width, b.height + trailFx.extra);
   }
+  // on a phone the stop he's on opens a line under its title, so the crew's strip moves down with it
+  new ResizeObserver(() => { if (trailFx.c && Math.abs(EL.trail.offsetHeight + trailFx.extra - trailFx.c.h) > 1) layoutTrailFx(); }).observe(EL.trail);
   const SKETCH = "#6965db"; // the violet of a whiteboard marker
   function sketchBox(c, x, y, w, h, seed) { // a slightly wobbly, hand-drawn rectangle
     const ctx = c.ctx, k = c.k, j = (n) => Math.sin(seed * 7.3 + n * 2.1) * 1.4;
