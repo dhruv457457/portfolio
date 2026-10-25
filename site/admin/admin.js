@@ -150,6 +150,7 @@
     const box = el("div", { class: "fields" });
     let row = null;
     for (const [k, r] of Object.entries(rule.fields)) {
+      if (get()[k] === undefined && ["list", "lines", "tags", "object", "tuple"].includes(r.kind)) get()[k] = blank(r); // a field older content doesn't have yet
       const ed = editor(r, () => get()[k], (v) => { const o = get(); o[k] = v; set(o); });
       if (SHORT.has(r.kind)) { if (!row) { row = el("div", { class: "row" }); box.append(row); } row.append(ed); }
       else { row = null; box.append(ed); }

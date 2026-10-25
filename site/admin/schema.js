@@ -9,7 +9,7 @@
   const text = (label, max, more) => ({ kind: "text", label, max, ...more });
   const area = (label, max, words, more) => ({ kind: "area", label, max, words, ...more });
   const tags = (label, max, itemMax) => ({ kind: "tags", label, max, itemMax });
-  const lines = (label, min, max, item) => ({ kind: "lines", label, min, max, item });
+  const lines = (label, min, max, item, more) => ({ kind: "lines", label, min, max, item, ...more });
   const int = (label, min, max, more) => ({ kind: "int", label, min, max, ...more });
   const list = (label, min, max, item, more) => ({ kind: "list", label, min, max, item, ...more });
   const object = (fields) => ({ kind: "object", fields });
@@ -29,6 +29,7 @@
       kind: text("One-line description", 70),
       chips: tags("Chips (up to 4)", 4, 40),
       text: area("About it", 440, 75),
+      details: lines("More details, shown when it's opened (optional)", 0, 6, area("Point", 240, 45, optional), optional),
       live: { kind: "url", label: "Live link", ...optional },
       code: { kind: "url", label: "Code link", ...optional },
       video: { kind: "youtube", label: "YouTube video id", ...optional },
@@ -160,10 +161,11 @@
         return v;
       }
       case "lines": {
+        if (empty && rule.optional) return undefined;
         if (!Array.isArray(value)) return fail("must be a list");
         const v = value.map((x, i) => check(rule.item, x, `${path}.${i}`, errors)).filter((x) => x !== undefined);
         if (v.length < rule.min || v.length > rule.max) return fail(`${rule.min === rule.max ? rule.min : `${rule.min} to ${rule.max}`} needed`);
-        return v;
+        return v.length || !rule.optional ? v : undefined; // an empty optional list isn't stored
       }
       case "list": {
         if (!Array.isArray(value)) return fail("must be a list");

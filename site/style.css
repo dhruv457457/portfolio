@@ -230,8 +230,59 @@ main { position: relative; }
 
 /* ---------- Projects ---------- */
 .projects { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
-.project { display: flex; flex-direction: column; overflow: hidden; transition: transform .3s, box-shadow .3s, background .5s; }
-.project-body { display: flex; flex-direction: column; flex: 1; padding: 22px 26px 22px; }
+/* the Workshop's cards wear the Inventory pouches' pixel frame */
+.project {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--ink) 18%, transparent), 5px 5px 0 color-mix(in srgb, var(--ink) 16%, transparent);
+  transition: transform .3s, box-shadow .3s, background .5s;
+}
+/* the cover is a little browser window: a dark bar with the live site's address, the capture below */
+.project .window { position: relative; margin: 12px 12px 0; border: 3px solid var(--ink); border-radius: 6px; overflow: hidden; background: #1f2430; }
+.window-bar { display: flex; align-items: center; gap: 6px; padding: 7px 10px 6px; color: #c9cfdb; font: 400 1.05rem/1 "VT323", var(--pixel), monospace; }
+.window-bar i { flex: none; width: 8px; height: 8px; background: #c0473a; }
+.window-bar i:nth-child(2) { background: #f1bf45; }
+.window-bar i:nth-child(3) { background: #66863e; }
+.window-bar .host { flex: 1; min-width: 0; margin-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.window-bar .on-air { flex: none; color: #7ee0a2; animation: blink 2.4s steps(2, jump-none) infinite; }
+@keyframes blink { 50% { opacity: .45; } }
+.project .thumb { border-bottom: 0; }
+#projects .project { cursor: pointer; }
+/* a hackathon win, pinned to the corner of the window */
+.ribbon {
+  position: absolute;
+  top: 40px;
+  right: 10px;
+  z-index: 1;
+  padding: 5px 10px 4px;
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  background: #f1bf45;
+  color: #3a2a10;
+  font: 400 1.1rem/1 "VT323", var(--pixel), monospace;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--ink) 55%, transparent);
+  transform: rotate(3deg);
+}
+.project .tag { margin-left: 10px; padding: 3px 7px 2px; border: 2px solid var(--accent); border-radius: 4px; color: var(--accent); font: 400 .6rem var(--pixel); letter-spacing: .08em; text-transform: uppercase; vertical-align: middle; }
+.project-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.project-icon { /* an item slot holding the project's icon */
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 2px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 6px;
+  background: linear-gradient(135deg, transparent 0 72%, color-mix(in srgb, var(--accent) 14%, transparent) 72%), var(--bg);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.project-icon svg { width: 36px; height: 36px; }
+.project:hover .project-icon svg { animation: hop .5s steps(3, end) 1; }
+@keyframes hop { 50% { transform: translateY(-4px); } }
+.project-body { display: flex; flex-direction: column; flex: 1; padding: 18px 22px 20px; }
 .thumb {
   position: relative;
   display: block;
@@ -249,46 +300,58 @@ main { position: relative; }
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--card) 88%, transparent);
-  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 54px;
+  padding-left: 4px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--accent);
+  font: 400 1.7rem/1 var(--pixel);
   transform: translate(-50%, -50%);
-  box-shadow: 0 8px 24px -8px rgb(0 0 0 / .5);
-  transition: transform .3s;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform .15s, box-shadow .15s;
 }
-.thumb .play::after { /* triangle */
-  content: "";
-  position: absolute;
-  left: 54%;
-  top: 50%;
-  border-style: solid;
-  border-width: 9px 0 9px 15px;
-  border-color: transparent transparent transparent var(--accent);
-  transform: translate(-50%, -50%);
-}
-.thumb:hover .play { transform: translate(-50%, -50%) scale(1.08); }
+.thumb:hover .play { transform: translate(calc(-50% - 2px), calc(-50% - 2px)); box-shadow: 6px 6px 0 var(--ink); }
+.thumb:active .play { transform: translate(calc(-50% + 3px), calc(-50% + 3px)); box-shadow: 1px 1px 0 var(--ink); }
 .thumb .watch {
   position: absolute;
-  left: 14px;
-  bottom: 12px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgb(0 0 0 / .55);
-  color: #fff;
-  font: 400 .65rem var(--pixel);
-  letter-spacing: .08em;
+  left: 10px;
+  bottom: 10px;
+  padding: 4px 8px 3px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--ink);
+  font: 400 1.05rem/1 "VT323", var(--pixel), monospace;
 }
 
 /* Demo video player */
 .player {
-  width: min(960px, calc(100% - 32px));
+  width: min(880px, calc(100% - 24px));
+  max-height: calc(100vh - 24px);
   padding: 0;
   border: 0;
   background: none;
   overflow: visible;
 }
+.pm.project { max-height: calc(100vh - 28px); overflow: auto; background: var(--card); cursor: auto; }
+.pm.project:hover { transform: none; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--ink) 18%, transparent), 5px 5px 0 color-mix(in srgb, var(--ink) 16%, transparent); }
+.pm .window-bar form { margin: 0 0 0 6px; }
+.pm-x { padding: 1px 7px; border: 2px solid #3a4256; border-radius: 4px; background: none; color: #c9cfdb; font: 400 1.05rem/1 "VT323", var(--pixel), monospace; cursor: pointer; }
+.pm-x:hover { border-color: #c9cfdb; color: #fff; }
+.pm .player-frame { border-radius: 0; box-shadow: none; }
+.pm .player-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pm .player-frame [hidden] { display: none; }
+.pm-body { padding: 18px 24px 22px; }
+.pm-won { display: inline-block; margin: 0 0 12px; padding: 5px 10px 4px; border: 3px solid var(--ink); border-radius: 4px; background: #f1bf45; color: #3a2a10; font: 400 1.1rem/1 "VT323", var(--pixel), monospace; }
+.pm-won[hidden] { display: none; }
+.pm .pm-text { margin: 0 0 12px; color: var(--ink); font-size: 1.02rem; line-height: 1.6; }
+.pm-details { margin: 0 0 18px; padding-left: 20px; color: var(--muted); line-height: 1.55; }
+.pm-details li { margin-bottom: 6px; }
+.pm-details li::marker { content: "❖  "; color: var(--accent); }
 .player::backdrop { background: rgb(15 20 15 / .7); backdrop-filter: blur(4px); }
 .player-frame { aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; background: #000; box-shadow: 0 30px 80px -20px rgb(0 0 0 / .6); }
 .player-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
@@ -302,9 +365,19 @@ main { position: relative; }
   font: 400 1.05rem var(--serif);
   cursor: pointer;
 }
-.project:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -24px rgb(30 40 30 / .35); }
+.project:hover { transform: translate(-2px, -4px); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--ink) 18%, transparent), 8px 9px 0 color-mix(in srgb, var(--ink) 18%, transparent); }
 .project .kind { font: 400 .75rem var(--pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-.project h3 { margin: 6px 0 12px; font: 400 2rem/1.05 var(--serif); }
+.project h3 { margin: 4px 0 0; font: 400 2rem/1.05 var(--serif); }
+/* the tech chips are item slots, like the Inventory's */
+.project .chips li {
+  padding: 4px 9px 3px;
+  border: 2px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 5px;
+  background: linear-gradient(135deg, transparent 0 72%, color-mix(in srgb, var(--accent) 14%, transparent) 72%), var(--bg);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--ink) 8%, transparent);
+  font: 400 1.15rem/1 "VT323", var(--pixel), monospace;
+  color: var(--ink);
+}
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; padding: 0; list-style: none; }
 .chips li {
   padding: 3px 10px;
@@ -314,7 +387,19 @@ main { position: relative; }
   color: var(--muted);
 }
 .project p { margin: 0 0 20px; color: var(--muted); font-size: .95rem; }
-.project .actions { display: flex; gap: 10px; margin-top: auto; }
+.project .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; }
+.project .actions .btn {
+  padding: 7px 14px 6px;
+  border: 3px solid var(--ink);
+  border-radius: 5px;
+  font: 400 1.3rem/1 "VT323", var(--pixel), monospace;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+.project .actions .btn.ghost { background: var(--card); color: var(--ink); }
+.project .actions .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.project .actions .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
 .btn {
   display: inline-flex;
   align-items: center;

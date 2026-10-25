@@ -231,10 +231,31 @@
     <span class="music-hint" id="music-hint">tap anywhere for sound ♪</span>
   </nav>
 
-  <!-- Video player for project demos -->
-  <dialog class="player" id="player" aria-label="Project demo video">
-    <div class="player-frame"><iframe id="player-iframe" title="Project demo" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
-    <form method="dialog"><button class="player-close" aria-label="Close video">close ✕</button></form>
+  <!-- A project, opened: its demo plays on top (or its cover shows), the whole write-up sits below -->
+  <dialog class="player" id="player" aria-labelledby="pm-name">
+    <div class="pm project">
+      <div class="window">
+        <div class="window-bar">
+          <i></i><i></i><i></i><span class="host" id="pm-host"></span><span class="on-air" id="pm-live">● live</span>
+          <form method="dialog"><button class="pm-x" aria-label="Close">✕</button></form>
+        </div>
+        <div class="player-frame">
+          <iframe id="player-iframe" title="Project demo" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+          <img id="pm-cover" alt="" hidden>
+        </div>
+      </div>
+      <div class="pm-body">
+        <div class="project-head">
+          <span class="project-icon" id="pm-icon"></span>
+          <div><span class="kind" id="pm-kind"></span><h3 id="pm-name"></h3></div>
+        </div>
+        <p class="pm-won" id="pm-won" hidden></p>
+        <ul class="chips" id="pm-chips"></ul>
+        <p class="pm-text" id="pm-text"></p>
+        <ul class="pm-details" id="pm-details"></ul>
+        <div class="actions" id="pm-actions"></div>
+      </div>
+    </div>
   </dialog>
 
   <!-- The pixel me who travels down the page with you (and the odd thing he says) -->

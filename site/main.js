@@ -25,49 +25,118 @@ const store = {
 $("#hero-name").textContent = S.name;
 $("#hero-sub").textContent = S.tagline;
 
+// 12×12 pixel icons for the project cards, in the Inventory's style ("." = empty). A project
+// added later in the admin gets the treasure chest.
+const PROJECT_ICONS = {
+  patched: { colors: { k: "#2f3a4a", h: "#4f6b2e", d: "#3b5222", p: "#f1bf45", w: "#f6efe0" }, rows: [ // a hoodie with a patch
+    "...kkkkkk...", "..khhhhhhk..", ".khhk..khhk.", "kkhhkkkkhhkk", "khhhhhhhhhhk", "khhppphhhhhk",
+    "khhpwphhhhhk", "khhppphhhhhk", "khhhhhhhhhhk", "khddddddddhk", "kkkkkkkkkkkk", "............",
+  ] },
+  puff: { colors: { k: "#3b4150", w: "#f6f7fb", b: "#9fb9ff", n: "#8b7fd6" }, rows: [ // a cloud holding a little graph
+    "............", "............", "....kkkk....", "..kkwwwwkkk.", ".kwwwwwwwwwk", "kwwnbbbbnwwk",
+    "kwwwbwwbwwwk", "kwwwwnnwwwwk", ".kwwwwwwwwk.", "..kkkkkkkk..", "............", "............",
+  ] },
+  clove: { colors: { k: "#2e4a22", g: "#66863e", l: "#95b06b", s: "#5a4636" }, rows: [ // a four-leaf clover
+    "..kk....kk..", ".kggk..kggk.", "kglggkkgglgk", "kggggggggggk", ".kggggggggk.", "..kkggggkk..",
+    "..kkggggkk..", ".kggggggggk.", "kggggggggggk", "kglggkkgglgk", ".kggk.skggk.", "..kk...s.kk.",
+  ] },
+  kinato: { colors: { k: "#3b2a2a", r: "#d9483b", w: "#e8a598" }, rows: [ // a phone, ringing
+    "kkk.........", "krrk....w...", "krrk.....w..", ".krk..w...w.", ".krrk..w..w.", "..krk...w.w.",
+    "..krrk......", "...krrk.....", "....krrkkk..", ".....krrrrk.", "......krrrk.", ".......kkk..",
+  ] },
+  metacow: { colors: { k: "#2b2b2b", w: "#f6f1e6", p: "#f2a7b5", h: "#d9c39a" }, rows: [ // a cow
+    "h..........h", ".h.kkkkkk.h.", "kkkwwkkwwkkk", "kwwwkkwwwwwk", "kwkwwwwwwkwk", ".kwwwwwwwwk.",
+    ".kwwwwwwwwk.", ".kppppppppk.", ".kpkppppkpk.", ".kppppppppk.", "..kkkkkkkk..", "............",
+  ] },
+  "bone dry": { colors: { k: "#4a3a2c", b: "#f4ecda" }, rows: [ // a bone
+    "............", ".kk......kk.", "kbbk....kbbk", "kbbbkkkkbbbk", ".kbbbbbbbbk.", ".kbbbbbbbbk.",
+    "kbbbkkkkbbbk", "kbbk....kbbk", ".kk......kk.", "............", "............", "............",
+  ] },
+  chest: { colors: { k: "#4a3426", w: "#9a6b3f", d: "#7a5233", y: "#f1bf45" }, rows: [ // a treasure chest
+    "............", "..kkkkkkkk..", ".kwwwwwwwwk.", "kwwwwwwwwwwk", "kddddddddddk", "kkkkkyykkkkk",
+    "kwwwkyykwwwk", "kwwwwkkwwwwk", "kwwwwwwwwwwk", "kddddddddddk", "kkkkkkkkkkkk", "............",
+  ] },
+};
+
+// the hackathon a project won, if it did (shown as a ribbon on its card)
+const wonBy = Object.fromEntries((S.trophies || []).map((t) => [String(t.project).toLowerCase(), t]));
+const hostOf = (url) => { try { return new URL(url).host; } catch { return ""; } };
+const outLink = (cls, text, href) => Object.assign(el("a", cls, text), { href, target: "_blank", rel: "noopener" });
+
+// the links a project has (the admin lets either be left out)
+const projectLinks = (p) => [p.live && outLink("btn solid", "Live ↗", p.live), p.code && outLink("btn ghost", "Code", p.code)].filter(Boolean);
+const iconFor = (p) => pixelLogo(PROJECT_ICONS[p.name.toLowerCase()] || PROJECT_ICONS.chest, 12);
+
+// A card is the short version: cover, name, chips. Clicking anywhere on it opens the project,
+// with its demo playing and the whole write-up underneath.
 S.projects.forEach((p) => {
   const card = el("article", "project card reveal");
+  const open = () => openProject(p);
+  card.addEventListener("click", (e) => { if (!e.target.closest("a, button")) open(); });
   if (p.cover) {
-    // The cover is a capture of the live site. With a demo video it plays the video;
-    // without one it opens the live app.
-    const thumb = el(p.video ? "button" : "a", "thumb");
+    // a little browser window: the bar names the live site, the screen is a capture of it
+    const win = el("div", "window"), bar = el("div", "window-bar");
+    bar.append(el("i"), el("i"), el("i"), el("span", "host", hostOf(p.live) || p.name));
+    if (p.live) bar.append(el("span", "on-air", "● live"));
+    const thumb = el("button", "thumb");
+    thumb.type = "button";
+    thumb.setAttribute("aria-label", `Open ${p.name}${p.video ? ": demo video and details" : " details"}`);
     const img = el("img");
     img.alt = "";
     img.loading = "lazy";
     img.src = p.cover;
     thumb.append(img);
-    if (p.video) {
-      thumb.type = "button";
-      thumb.setAttribute("aria-label", `Play the ${p.name} demo video`);
-      thumb.append(el("span", "play"), el("span", "watch", "▶ watch demo"));
-      thumb.addEventListener("click", () => openVideo(p.video, p.name));
-    } else {
-      Object.assign(thumb, { href: p.live, target: "_blank", rel: "noopener" });
-      thumb.setAttribute("aria-label", `Open ${p.name}, live`);
-      thumb.append(el("span", "watch", "open live ↗"));
-    }
-    card.append(thumb);
+    if (p.video) thumb.append(el("span", "play", "▶"));
+    thumb.append(el("span", "watch", p.video ? "watch demo" : "see more"));
+    thumb.addEventListener("click", open);
+    win.append(bar, thumb);
+    const won = wonBy[p.name.toLowerCase()];
+    if (won) win.append(Object.assign(el("span", "ribbon", `★ ${won.place}`), { title: `${won.place} · ${won.event}` }));
+    card.append(win);
   }
   const actions = el("div", "actions");
-  const live = el("a", "btn solid", "View live ↗");
-  live.href = p.live;
-  const code = el("a", "btn ghost", "View code");
-  code.href = p.code;
-  [live, code].forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
-  actions.append(live, code);
+  const more = el("button", "btn ghost", p.video ? "▶ Demo" : "Details");
+  more.type = "button";
+  more.addEventListener("click", open);
+  actions.append(...projectLinks(p), more);
   const body = el("div", "project-body");
-  body.append(el("span", "kind", p.team ? `${p.kind} · team project` : p.kind), el("h3", "", p.name), chips(p.chips), el("p", "", p.text), actions);
+  // the project's pixel icon in its own slot, beside its name
+  const head = el("div", "project-head"), slot = el("span", "project-icon"), named = el("div"), h3 = el("h3", "", p.name);
+  slot.append(iconFor(p));
+  if (p.team) h3.append(el("span", "tag", "team"));
+  named.append(el("span", "kind", p.kind), h3);
+  head.append(slot, named);
+  body.append(head, chips(p.chips), actions);
   card.append(body);
   $("#projects").append(card);
 });
 
-/* ---------- Video player ---------- */
+/* ---------- A project, opened: the demo plays on top, the whole write-up sits below ---------- */
 const player = $("#player");
-function openVideo(id, name) {
-  $("#player-iframe").src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
-  $("#player-iframe").title = `${name} demo`;
+function openProject(p) {
+  const frame = $("#player-iframe"), cover = $("#pm-cover");
+  frame.hidden = !p.video;
+  cover.hidden = !!p.video || !p.cover;
+  if (p.video) {
+    frame.src = `https://www.youtube-nocookie.com/embed/${p.video}?autoplay=1&rel=0&modestbranding=1`;
+    frame.title = `${p.name} demo`;
+  } else if (p.cover) cover.src = p.cover;
+  $("#pm-host").textContent = hostOf(p.live) || p.name;
+  $("#pm-live").hidden = !p.live;
+  $("#pm-icon").replaceChildren(iconFor(p));
+  $("#pm-kind").textContent = p.kind;
+  $("#pm-name").textContent = p.name;
+  if (p.team) $("#pm-name").append(el("span", "tag", "team"));
+  const won = wonBy[p.name.toLowerCase()];
+  $("#pm-won").hidden = !won;
+  if (won) $("#pm-won").textContent = `★ ${won.place} · ${won.event}`;
+  $("#pm-chips").replaceChildren(...(p.chips || []).map((c) => el("li", "", c)));
+  $("#pm-text").textContent = p.text;
+  $("#pm-details").replaceChildren(...(p.details || []).map((d) => el("li", "", d)));
+  $("#pm-actions").replaceChildren(...projectLinks(p));
   player.showModal();
-  Sound.duck(true);
+  $(".pm").scrollTop = 0;
+  if (p.video) Sound.duck(true);
 }
 player.addEventListener("close", () => {
   $("#player-iframe").src = "about:blank";

@@ -493,6 +493,9 @@
     wipe(c);
     if (still) { lightTrail(EL.stops.length - 1, null, false, now); return; } // reduced motion: he simply waits in each spot
     const moving = now - G.lastScroll < 200;
+    // his resting poses (the laptop on the rope, a wave, a chat) wait for a real stop, so a slow
+    // scroll with little pauses doesn't flip him between poses every second
+    const settling = now - G.lastScroll < 1200;
 
     // Where the scroll is, in stations. Each move plays out while the scroll runs through the stretch just
     // before the station it leads to, so he moves with the page (not on a timer) and is there when it arrives.
@@ -540,7 +543,7 @@
     }
     G.move = at >= 0 ? null : { idx: Math.floor(G.P), dir: G.P >= prevP ? 1 : -1 }; // the move he's partway through
 
-    let st = G.move ? MOVES[G.move.idx].fn(G.P - G.move.idx, now) : STATIONS[G.cur].rest(now, moving);
+    let st = G.move ? MOVES[G.move.idx].fn(G.P - G.move.idx, now) : STATIONS[G.cur].rest(now, settling);
     // sounds and effects at their moments in each move he passes through, going forwards at a watchable pace
     if (G.P > prevP && gap <= 1.5) {
       for (let m = Math.floor(prevP); m < G.P && m < MOVES.length; m++) {
@@ -561,7 +564,7 @@
       Sound.whoosh();
     }
     if (G.fly && want > G.P + 1e-3) G.fly = null; // heading down again: the usual moves take over
-    if (G.fly) st = flight(now, dt, moving) || STATIONS[G.cur].rest(now, moving);
+    if (G.fly) st = flight(now, dt, moving) || STATIONS[G.cur].rest(now, settling);
 
     const dock = st.dock || null;
     if (dock !== G.dock) { G.dock = dock; G.dockAt = now; }
@@ -1428,7 +1431,7 @@
     else if (!hold.on && now - hold.cool > 1000) { hold.on = true; hold.since = now; }
     if (hold.on && now - hold.since > 2500) { hold.on = false; hold.cool = now; }
   }
-  const wait = (e) => { if (hold.on && e.cancelable) e.preventDefault(); };
+  const wait = (e) => { if (hold.on && e.cancelable && !e.target.closest?.("dialog[open]")) e.preventDefault(); }; // never inside an open pop-up
   addEventListener("wheel", (e) => { if (e.deltaY > 0 && !e.ctrlKey) wait(e); }, { passive: false });
   let touchY = 0;
   addEventListener("touchstart", (e) => { touchY = e.touches[0].clientY; }, { passive: true });
