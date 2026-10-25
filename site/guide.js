@@ -522,7 +522,7 @@
     G.gardenHold = want > IDX.garden && G.P <= IDX.garden && G.P > IDX.garden - 1.5 && want - G.P < 2.5 && gardener.state !== "done";
     if (G.gardenHold) want = IDX.garden;
     // ...and he stays on the Journey stage until its last scene has played
-    const journeyLeft = stage.shown >= 0 && (stage.shown < S.journey.length - 1 || stage.p < 0.99);
+    const journeyLeft = seen.get(stage.el) && stage.shown >= 0 && (stage.shown < S.journey.length - 1 || stage.p < 0.99);
     G.stageHold = want > IDX.stage && G.P <= IDX.stage && G.P > IDX.stage - 1.5 && want - G.P < 2.5 && journeyLeft;
     if (G.stageHold) want = Math.min(want, IDX.stage);
     G.lag = G.fly ? 0 : Math.max(0, T - G.P); // how many stations the scroll is ahead of him
@@ -1415,10 +1415,12 @@
   addEventListener("resize", layout);
   layout();
   document.fonts?.ready.then(layout); // canvases with words redraw once the pixel font is in
-  /* ---------- Never skip: while something's catching up, the page waits before scrolling further down ---------- */
-  // Fast scrolling fast-forwards each animation; this keeps you from getting more than a step ahead
-  // of it. Only downward scrolling waits, never for more than 2.5s, and links still jump straight there.
+  /* ---------- Never skip: while something's catching up, scrolling down slows right down ---------- */
+  // Fast scrolling fast-forwards each animation, and while one is still catching up the page only
+  // creeps down (6% speed), so even a fast flick shows the whole thing, just quicker. It never stops
+  // dead, never lasts more than 8s at a time, scrolling up is never slowed, and links still jump.
   const hold = { on: false, since: 0, cool: 0 };
+  const CREEP = 0.06, MAX_STEP = 30; // a fraction of each scroll step, and at most this many px
   function catchingUp() {
     if (still) return false;
     if (seen.get(trailFx.el) && trailFx.shown < G.lit) return true; // a crew play is fast-forwarding
@@ -1428,16 +1430,26 @@
   function updateHold(now) {
     const busy = catchingUp();
     if (!busy) hold.on = false;
-    else if (!hold.on && now - hold.cool > 1000) { hold.on = true; hold.since = now; }
-    if (hold.on && now - hold.since > 2500) { hold.on = false; hold.cool = now; }
+    else if (!hold.on && now - hold.cool > 600) { hold.on = true; hold.since = now; }
+    if (hold.on && now - hold.since > 8000) { hold.on = false; hold.cool = now; }
   }
-  const wait = (e) => { if (hold.on && e.cancelable && !e.target.closest?.("dialog[open]")) e.preventDefault(); }; // never inside an open pop-up
-  addEventListener("wheel", (e) => { if (e.deltaY > 0 && !e.ctrlKey) wait(e); }, { passive: false });
+  // instead of the full step down, scroll a fraction of it
+  function creep(e, dy) {
+    if (!hold.on || !e.cancelable || e.target.closest?.("dialog[open]")) return;
+    e.preventDefault();
+    scrollBy(0, Math.min(dy * CREEP, MAX_STEP));
+  }
+  const LINE = 16;
+  addEventListener("wheel", (e) => {
+    if (e.deltaY > 0 && !e.ctrlKey) creep(e, e.deltaY * (e.deltaMode === 1 ? LINE : e.deltaMode === 2 ? innerHeight : 1));
+  }, { passive: false });
   let touchY = 0;
   addEventListener("touchstart", (e) => { touchY = e.touches[0].clientY; }, { passive: true });
-  addEventListener("touchmove", (e) => { const y = e.touches[0].clientY; if (y < touchY) wait(e); touchY = y; }, { passive: false });
+  addEventListener("touchmove", (e) => { const y = e.touches[0].clientY; if (y < touchY) creep(e, touchY - y); touchY = y; }, { passive: false });
   addEventListener("keydown", (e) => {
-    if (["ArrowDown", "PageDown", " ", "End"].includes(e.key) && !e.target.closest?.("input, textarea, select, button, a, [contenteditable]")) wait(e);
+    if (e.target.closest?.("input, textarea, select, button, a, [contenteditable]")) return;
+    const step = { ArrowDown: 40, PageDown: innerHeight * 0.9, " ": innerHeight * 0.9, End: innerHeight * 2 }[e.key];
+    if (step) creep(e, step);
   });
 
   let last = performance.now();
