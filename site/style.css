@@ -469,7 +469,7 @@ main { position: relative; }
 .btn:hover { transform: translateY(-1px); }
 
 /* ---------- Journey: pinned, scroll moves through the stops ---------- */
-.jr { position: relative; height: calc(var(--n, 3) * 75vh + 60vh); } /* each stop gets most of a screen of scrolling */
+.jr { position: relative; height: calc(var(--n, 3) * 55vh + 45vh); } /* each stop gets about half a screen of scrolling */
 .jr-sticky {
   position: sticky;
   top: clamp(64px, 10vh, 112px);
@@ -658,7 +658,7 @@ main { position: relative; }
 
 /* ---------- The trail: a lantern walks it as you scroll, and finds me at the end ---------- */
 /* the trail pins in the middle of the screen for a stretch of scrolling, one stop at a time */
-.trail-pin { position: relative; height: calc(5 * 32vh + 70vh); margin-bottom: 280px; } /* the bottom margin is room for the crew strip */
+.trail-pin { position: relative; height: calc(5 * 24vh + 50vh); margin-bottom: 280px; } /* the bottom margin is room for the crew strip */
 .walk { position: sticky; top: 34vh; }
 .walk-path { position: relative; z-index: 1; padding-top: 6px; }
 .trail-fx { position: absolute; left: 0; top: 0; pointer-events: none; }
@@ -792,7 +792,7 @@ main { position: relative; }
 .garden { padding: 22px 24px; }
 /* pinned while he waters the whole bed. The extra scroll his walk takes has to be content, not padding:
    a sticky card can't move into its container's padding, so with padding it never pins. */
-.garden-pin::after { content: ""; display: block; height: 75vh; }
+.garden-pin::after { content: ""; display: block; height: 50vh; }
 .garden-pin > .garden { position: sticky; top: 26vh; } /* roughly the middle of the screen */
 .garden-top, .garden-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: .88rem; }
 .garden-top span { font: 400 1.3rem var(--serif); }
@@ -1117,14 +1117,14 @@ main { position: relative; }
   .stage figcaption { font-size: 1rem; padding: 0 10px; }
   /* footer: the words, then the campfire, then the dock */
   .footer { grid-template-columns: 1fr; padding: 64px 20px 100px; align-content: end; }
-  .trail-pin { height: calc(5 * 30vh + 80vh); margin-bottom: 250px; }
+  .trail-pin { height: calc(5 * 24vh + 60vh); margin-bottom: 250px; }
   .walk { top: 14vh; }
   .trail strong { font-size: 1.35rem; }
   .trail small { display: none; }
   .dock a { padding: 6px 9px; font-size: .95rem; }
   .dock a[data-sec="home"], .dock a[data-sec="journey"] { display: none; }
   /* journey: stops become a row of tabs above the pinned panel */
-  .jr { height: calc(var(--n, 3) * 60vh + 80vh); }
+  .jr { height: calc(var(--n, 3) * 50vh + 60vh); }
   .jr-sticky { top: 14px; grid-template-columns: 1fr; gap: 10px; }
   /* tabs, then the team scene, then the job: all of it has to fit above the dock while pinned */
   .jr-side { order: -2; }

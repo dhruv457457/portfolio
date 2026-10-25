@@ -525,7 +525,6 @@
     const journeyLeft = seen.get(stage.el) && stage.shown >= 0 && (stage.shown < S.journey.length - 1 || stage.p < 0.99);
     G.stageHold = want > IDX.stage && G.P <= IDX.stage && G.P > IDX.stage - 1.5 && want - G.P < 2.5 && journeyLeft;
     if (G.stageHold) want = Math.min(want, IDX.stage);
-    G.lag = G.fly ? 0 : Math.max(0, T - G.P); // how many stations the scroll is ahead of him
     // Follow the scroll, but never faster than a move can be watched. A long way behind (a dock link),
     // he runs through every move in between, quickly, instead of vanishing and reappearing.
     const gap = Math.abs(want - G.P);
@@ -1243,9 +1242,10 @@
     if (stage.shown === 1) { const k = want * 3; if (k % 1 > DASH) want = Math.min(1, Math.ceil(k) / 3); } // never stop him mid-dash
     stage.lag = want - stage.p; // how far the scene is behind the scroll (the scroll hold reads this)
     if (!here) want = Math.min(want, stage.p); // the story waits until he's on the stage
-    // a scene takes at least 3s; when it's behind the scroll it catches up, still watchable, in 1.6s
+    // a scene takes 3s when you scroll gently; when you scroll on ahead it fast-forwards (0.6s) rather
+    // than being skipped, and the page never waits for it
     const behind = level > stage.shown || stage.lag > 0.15;
-    stage.p = still ? want : stage.p + clamp(want - stage.p, -dt / 1.2, dt / (behind ? 1.6 : 3));
+    stage.p = still ? want : stage.p + clamp(want - stage.p, -dt / 1.2, dt / (behind ? 0.6 : 3));
     if (level > stage.shown && stage.p >= 0.999) { showStep(stage.shown + 1, now, !still); stage.p = 0; }
     const t = Math.max(0, now - stage.t0) / 1000;
     SCENES[Math.min(stage.shown, SCENES.length - 1)](c, floor, still ? 9 : t, here, stage.s, stage.p); // later entries reuse the last scene
@@ -1415,49 +1415,11 @@
   addEventListener("resize", layout);
   layout();
   document.fonts?.ready.then(layout); // canvases with words redraw once the pixel font is in
-  /* ---------- Never skip: while something's catching up, scrolling down slows right down ---------- */
-  // Fast scrolling fast-forwards each animation, and while one is still catching up the page only
-  // creeps down (6% speed), so even a fast flick shows the whole thing, just quicker. It never stops
-  // dead, never lasts more than 8s at a time, scrolling up is never slowed, and links still jump.
-  const hold = { on: false, since: 0, cool: 0 };
-  const CREEP = 0.06, MAX_STEP = 30; // a fraction of each scroll step, and at most this many px
-  function catchingUp() {
-    if (still) return false;
-    if (seen.get(trailFx.el) && trailFx.shown < G.lit) return true; // a crew play is fast-forwarding
-    if (seen.get(stage.el) && stage.shown >= 0 && (stage.shown < stage.level || stage.lag > 0.15)) return true; // a Journey scene is catching up
-    return !!G.gardenHold || !!G.stageHold || G.lag > 1.2; // still watering the bed, still on stage, or over a move behind
-  }
-  function updateHold(now) {
-    const busy = catchingUp();
-    if (!busy) hold.on = false;
-    else if (!hold.on && now - hold.cool > 600) { hold.on = true; hold.since = now; }
-    if (hold.on && now - hold.since > 8000) { hold.on = false; hold.cool = now; }
-  }
-  // instead of the full step down, scroll a fraction of it
-  function creep(e, dy) {
-    if (!hold.on || !e.cancelable || e.target.closest?.("dialog[open]")) return;
-    e.preventDefault();
-    scrollBy(0, Math.min(dy * CREEP, MAX_STEP));
-  }
-  const LINE = 16;
-  addEventListener("wheel", (e) => {
-    if (e.deltaY > 0 && !e.ctrlKey) creep(e, e.deltaY * (e.deltaMode === 1 ? LINE : e.deltaMode === 2 ? innerHeight : 1));
-  }, { passive: false });
-  let touchY = 0;
-  addEventListener("touchstart", (e) => { touchY = e.touches[0].clientY; }, { passive: true });
-  addEventListener("touchmove", (e) => { const y = e.touches[0].clientY; if (y < touchY) creep(e, touchY - y); touchY = y; }, { passive: false });
-  addEventListener("keydown", (e) => {
-    if (e.target.closest?.("input, textarea, select, button, a, [contenteditable]")) return;
-    const step = { ArrowDown: 40, PageDown: innerHeight * 0.9, " ": innerHeight * 0.9, End: innerHeight * 2 }[e.key];
-    if (step) creep(e, step);
-  });
-
   let last = performance.now();
   function frame(now) {
     const dt = clamp((now - last) / 1000, 0, 0.05); // the first frame's time can trail performance.now()
     last = now;
     drawGuide(now, dt);
-    updateHold(now);
     if (seen.get(portrait.el)) drawPortrait(now);
     if (seen.get(trailFx.el)) drawTrailFx(now);
     else if (trailFx.shown !== undefined) trailFx.shown = G.lit; // off screen: nothing to catch up on

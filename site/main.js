@@ -148,7 +148,7 @@ S.projects.forEach((p, i) => {
 // The stage stays pinned while the page scrolls; the row moves WS_K px for every px of scroll the other
 // way round (the row travels further than you scroll), so a dozen projects cost little scrolling.
 const wsPin = $("#ws-pin"), wsStage = $("#ws-stage"), wsWindow = $(".ws-window"), wsTrack = $("#projects");
-const WS_K = 0.6; // px of scroll per px the row moves
+const WS_K = 0.5; // px of scroll per px the row moves
 let wsTravel = 0;
 function layoutWorkshop() {
   // the row starts (and, at the end, finishes) in line with the heading, wherever that sits
