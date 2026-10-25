@@ -6,7 +6,7 @@
 //   tools     [group, [skills]]   loot  prize money and wins   trophies  the trophy wall (prize: USD or null)
 
 window.SITE = {
-  "name": "Dhruv",
+  "name": "Dhruv Pancholi",
   "tagline": "A backend-focused full-stack developer who ships with AI.",
   "links": {
     "email": "dhruvpancholi457@gmail.com",

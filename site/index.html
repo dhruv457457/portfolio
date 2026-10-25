@@ -4,16 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dhruv Pancholi · Portfolio</title>
-  <meta name="description" content="Dhruv Pancholi, a backend-focused full-stack developer who ships with AI.">
+  <meta name="description" content="Dhruv Pancholi, a backend-focused full-stack developer in Jaipur, India. Founding engineer at deden.space, 11 projects shipped, 10+ hackathon wins.">
+  <meta name="author" content="Dhruv Pancholi">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#f5f2ea">
   <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png"> <!-- Google's results want a multiple of 48px -->
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
   <!-- Link previews (LinkedIn, X, WhatsApp, Slack).
        Image and page URLs are full addresses: LinkedIn and X ignore relative paths.
        If the domain changes, update og:url, og:image, twitter:image and the canonical link. -->
   <link rel="canonical" href="https://dhruvpanch0li.vercel.app/">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="profile">
+  <meta property="profile:first_name" content="Dhruv">
+  <meta property="profile:last_name" content="Pancholi">
+  <meta property="profile:username" content="dhruv457457">
+  <meta property="og:locale" content="en_IN">
   <meta property="og:site_name" content="Dhruv Pancholi">
   <meta property="og:url" content="https://dhruvpanch0li.vercel.app/">
   <meta property="og:title" content="Dhruv Pancholi · Portfolio">
@@ -28,6 +35,51 @@
   <meta name="twitter:description" content="Backend-focused full-stack developer. Founding engineer at deden.space, 11 projects shipped, 10+ hackathon wins.">
   <meta name="twitter:image" content="https://dhruvpanch0li.vercel.app/assets/og-card.jpg">
   <meta name="twitter:image:alt" content="Dhruv Pancholi's portfolio: backend-focused full-stack developer, drawn in pixel art with his AI crew">
+  <!-- the same person on other sites, so search engines tie them together -->
+  <link rel="me" href="https://github.com/dhruv457457">
+  <link rel="me" href="https://www.linkedin.com/in/dhruv-pancholi">
+  <link rel="me" href="https://x.com/dhruvpanch0li">
+
+  <!-- Search engines: who this page is about. Keep the links in step with "links" in data.js. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://dhruvpanch0li.vercel.app/#website",
+        "url": "https://dhruvpanch0li.vercel.app/",
+        "name": "Dhruv Pancholi",
+        "alternateName": ["Dhruv Pancholi Portfolio", "dhruvpanch0li"],
+        "inLanguage": "en"
+      },
+      {
+        "@type": "ProfilePage",
+        "@id": "https://dhruvpanch0li.vercel.app/#page",
+        "url": "https://dhruvpanch0li.vercel.app/",
+        "name": "Dhruv Pancholi · Portfolio",
+        "isPartOf": { "@id": "https://dhruvpanch0li.vercel.app/#website" },
+        "mainEntity": { "@id": "https://dhruvpanch0li.vercel.app/#dhruv" },
+        "dateModified": "2026-10-25"
+      },
+      {
+        "@type": "Person",
+        "@id": "https://dhruvpanch0li.vercel.app/#dhruv",
+        "name": "Dhruv Pancholi",
+        "givenName": "Dhruv",
+        "familyName": "Pancholi",
+        "alternateName": ["dhruv457457", "dhruvpanch0li"],
+        "url": "https://dhruvpanch0li.vercel.app/",
+        "image": "https://dhruvpanch0li.vercel.app/assets/dhruv.png",
+        "jobTitle": "Backend-focused full-stack developer",
+        "description": "Dhruv Pancholi, a backend-focused full-stack developer in Jaipur, India. Founding engineer at deden.space, 11 projects shipped, 10+ hackathon wins.",
+        "address": { "@type": "PostalAddress", "addressLocality": "Jaipur", "addressRegion": "Rajasthan", "addressCountry": "IN" },
+        "knowsAbout": ["Backend development", "Full-stack web development", "Node.js", "TypeScript", "PostgreSQL", "Solidity", "Smart contracts", "AI agents"],
+        "sameAs": ["https://github.com/dhruv457457", "https://www.linkedin.com/in/dhruv-pancholi", "https://x.com/dhruvpanch0li"]
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Silkscreen&family=VT323&display=swap">
@@ -42,8 +94,8 @@
     <div class="hero-art" id="hero-art"></div>
     <canvas class="pollen" id="pollen" aria-hidden="true"></canvas>
     <div class="hero-inner">
-      <h1 class="hero-title">Hi! I'm <span id="hero-name"></span></h1>
-      <p class="hero-sub" id="hero-sub"></p>
+      <h1 class="hero-title">Hi! I'm <span id="hero-name">Dhruv Pancholi</span></h1>
+      <p class="hero-sub" id="hero-sub">A backend-focused full-stack developer who ships with AI.</p>
       <p class="trail-label"><span></span>pick a trail<span></span></p>
       <nav class="trails" aria-label="Sections">
         <a class="trail" href="#workshop">
