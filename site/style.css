@@ -1193,3 +1193,22 @@ html { overscroll-behavior-x: none; }
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* a section scrolled out of view pauses its loops (main.js) */
+.asleep, .asleep * { animation-play-state: paused !important; }
+
+/* ---------- Phones and tablets ---------- */
+/* A live blur behind the dock and the glass cards is redone on every frame the page moves under them,
+   and a phone's GPU can't keep up with that while you scroll: solid backgrounds instead. The pixel
+   canvases draw at 1x (guide.js) and scale up sharp. The pinned stretches are shorter, so a swipe
+   always moves the page along. */
+@media (hover: none), (pointer: coarse) {
+  .guide, .pollen, .footer-sky { image-rendering: pixelated; }
+  .dock { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card); }
+  .trail { -webkit-backdrop-filter: none; backdrop-filter: none; background: linear-gradient(160deg, rgb(255 255 255 / .3), rgb(255 255 255 / .14) 46%, rgb(40 25 15 / .42)); }
+  .footer-links a { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(255 255 255 / .14); }
+  .ws-stage.swipe .projects { will-change: auto; } /* a row the width of 11 cards is too big a layer for a phone */
+  .trail-pin { height: calc(5 * 16vh + 45vh); }
+  .jr { height: calc(var(--n, 3) * 38vh + 45vh); }
+  .garden-pin::after { height: 30vh; }
+}

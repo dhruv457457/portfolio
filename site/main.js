@@ -4,6 +4,20 @@
 const $ = (s, r = document) => r.querySelector(s);
 const S = window.SITE;
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+// phones and tablets (guide.js uses this too)
+const TOUCH = matchMedia("(hover: none), (pointer: coarse)").matches;
+// On a phone the toolbar sliding in and out as you scroll fires "resize" with only the height changed.
+// Re-laying things out then (clearing canvases, re-measuring) is what makes scrolling stutter, so on a
+// touch screen only a new width, or a big change like turning the phone, counts as a resize.
+function onResize(fn) {
+  let w = innerWidth, h = innerHeight;
+  addEventListener("resize", () => {
+    if (TOUCH && innerWidth === w && Math.abs(innerHeight - h) < 160) return;
+    w = innerWidth;
+    h = innerHeight;
+    fn();
+  });
+}
 
 function el(tag, cls, text) {
   const n = document.createElement(tag);
@@ -203,7 +217,7 @@ function stepWorkshop(dir) {
 }
 $("#ws-prev").addEventListener("click", () => stepWorkshop(-1));
 $("#ws-next").addEventListener("click", () => stepWorkshop(1));
-addEventListener("resize", layoutWorkshop);
+onResize(layoutWorkshop);
 wsTouch.addEventListener?.("change", layoutWorkshop);
 document.fonts?.ready.then(layoutWorkshop);
 // tabbing onto a card while the row is pinned scrolls the page to where that card is in view
@@ -279,12 +293,13 @@ const jrPanels = S.journey.map((j) => {
   $("#jr-panels").append(a);
   return a;
 });
-let jrActive = -1;
+let jrActive = -1, jrP = "";
 function updateJourney() {
   const r = jr.getBoundingClientRect();
   const span = Math.max(1, r.height - innerHeight);
   const p = Math.min(1, Math.max(0, -r.top / span));
-  jr.style.setProperty("--jp", p.toFixed(4));
+  const jp = p.toFixed(4);
+  if (jp !== jrP) jr.style.setProperty("--jp", (jrP = jp)); // only when it moved: each write restyles the whole Journey
   const i = Math.min(S.journey.length - 1, Math.floor(p * S.journey.length));
   if (i === jrActive) return;
   jrActive = i;
@@ -536,6 +551,13 @@ const revealer = new IntersectionObserver((entries) => {
 }, { rootMargin: "0px 0px -8% 0px" });
 document.querySelectorAll(".reveal").forEach((n) => revealer.observe(n));
 
+// The little CSS loops (bobbing icons, blinking "live" dots, the campfire) keep the browser restyling
+// every frame even when they're off screen, so a section's loops only run while it's in view
+const awake = new IntersectionObserver((entries) => {
+  entries.forEach((e) => e.target.classList.toggle("asleep", !e.isIntersecting));
+}, { rootMargin: "100px 0px" });
+document.querySelectorAll("#home, main > section, #footer").forEach((n) => awake.observe(n));
+
 /* ---------- Dock: highlight the section on screen ---------- */
 const dockLinks = [...document.querySelectorAll(".dock a")];
 const sectionFor = { home: "home", workshop: "workshop", lantern: "lantern", journey: "journey", trophies: "trophies", garden: "trophies", footer: "footer" };
@@ -567,7 +589,7 @@ const pollen = {
   parts: [],
   resize() {
     const r = this.canvas.getBoundingClientRect();
-    const dpr = Math.min(2, devicePixelRatio || 1);
+    const dpr = TOUCH ? 1 : Math.min(2, devicePixelRatio || 1);
     this.w = r.width;
     this.h = r.height;
     this.canvas.width = r.width * dpr;
@@ -697,7 +719,7 @@ function frame(now) {
   }
   requestAnimationFrame(frame);
 }
-addEventListener("resize", () => pollen.resize());
+onResize(() => pollen.resize());
 pollen.resize();
 requestAnimationFrame(frame);
 

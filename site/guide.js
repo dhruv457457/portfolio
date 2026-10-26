@@ -23,8 +23,7 @@
   });
 
   // A crisp canvas: CSS size in px, backing store in device pixels
-  function sized(cv, w, h) {
-    const k = dpr();
+  function sized(cv, w, h, k = dpr()) {
     cv.style.width = `${w}px`;
     cv.style.height = `${h}px`;
     cv.width = Math.round(w * k);
@@ -131,14 +130,14 @@
     G.lastY = scrollY;
   }, { passive: true });
   function layoutGuide() {
-    G.c = sized(G.el, innerWidth, innerHeight);
+    // on a touch screen it reaches below the screen, so the toolbar sliding away never uncovers a strip
+    G.c = TOUCH ? sized(G.el, innerWidth, innerHeight + 120, 1) : sized(G.el, innerWidth, innerHeight);
     const content = Math.min(1040, innerWidth - 48);
     G.gutter = (innerWidth - content) / 2;
     G.wide = G.gutter >= 110; // room beside the content for the ropes
     G.scale = G.wide ? 4 : 3;
     G.stickyTop = parseFloat(getComputedStyle(EL.sticky).top) || 0;
   }
-  const HIDE = { show: false };
   const sideX = (s) => (s === "L" ? G.gutter / 2 : innerWidth - G.gutter / 2);
   const hangAt = (s) => ({ x: sideX(s), y: innerHeight * 0.58 });
   // where his hand (or harness) is, in sprite pixels from his feet
@@ -186,13 +185,25 @@
   function dive(top, mid, u, form) {
     return { ...mix(top, mid, u), pose: "jump", form, rot: u * Math.PI * 2, size: 1 - 0.6 * u, alpha: 1 - u };
   }
-  const ropeOnly = (st) => (G.wide ? st : HIDE);
+  // No margin for a rope on a phone or tablet: he straps on the jetpack instead and hovers, small, in a
+  // bottom corner clear of the dock until the next spot, so he never just disappears
+  const HOVER = 0.6;
+  const perch = (s) => ({ x: s === "L" ? 28 : innerWidth - 28, y: innerHeight - 92 });
+  function hover(s, form, now) {
+    const p = perch(s);
+    return { x: p.x, y: p.y + Math.sin(now / 420) * 4, pose: "idle", frame: now / 300, form, flip: s === "R", size: HOVER, jet: 0.7 };
+  }
+  // a jetpack flight between two spots, rising a little on the way and shrinking or growing to fit
+  function jetTo(a, b, u, form, now, from = 1, to = 1) {
+    const e = ease(clamp(u)), p = hop(a, b, e, 60);
+    return { ...p, pose: "idle", frame: now / 300, form, jet: 1, rot: clamp((b.x - a.x) / 1200, -0.2, 0.2) * Math.sin(e * Math.PI), size: lerp(from, to, e) };
+  }
 
   /* ---------- Stations: where he rests, given the scroll ---------- */
   const tools = S.tools.reduce((n, [, list]) => n + list.length, 0);
   const INVENTORY_LINES = ["main quest: backend", "side quests: Web3 + AI", `${tools} items in the bag`];
   function hanging(s, moving, idle, form, now) {
-    if (!G.wide) return HIDE;
+    if (!G.wide) return hover(s, form, now);
     const flip = s === "L", A = anchor(s), H = hangAt(s);
     const pos = { x: H.x + Math.sin(now / 650) * 3, y: H.y };
     if (!moving && idle === "type") return { ...pos, form, hook: A, pose: "type", frame: now / 200, line: [A, grip(pos, "belt", false)] }; // hangs by the harness and types
@@ -260,21 +271,22 @@
     { // hero → onto the Workshop heading → fire the rope at the top-left → swing out
       dur: 1700,
       sfx: [[0, "jump"], [0.32, "thud", "dust"], [0.44, "pew", "flash"], [0.63, "whoosh"]],
-      fn(q) {
+      fn(q, now) {
         const a = heroPt(), b = headPt();
         if (q < 0.32) return { ...hop(a, b, ease(q / 0.32), 140), pose: "jump" };
         if (q < 0.42) return { ...b, pose: "idle", shadow: true };
-        if (q < 0.62) return ropeOnly(fire("L", b, (q - 0.42) / 0.2));
-        return ropeOnly(swingOut("L", b, (q - 0.62) / 0.38));
+        if (!G.wide) return jetTo(b, perch("L"), (q - 0.42) / 0.58, undefined, now, 1, HOVER);
+        if (q < 0.62) return fire("L", b, (q - 0.42) / 0.2);
+        return swingOut("L", b, (q - 0.62) / 0.38);
       },
     },
     { // let go → jump onto the dialogue box → dive in
       dur: 950,
       sfx: [[0.15, "jump"], [0.72, "whoosh"]],
-      fn(q) {
-        if (!G.wide) return HIDE;
-        if (q < 0.15) return letGo("L", q / 0.15);
+      fn(q, now) {
         const H = hangAt("L"), top = portraitPt(0);
+        if (!G.wide && q < 0.72) return jetTo(perch("L"), top, q / 0.72, "lv2", now, HOVER, 1);
+        if (q < 0.15) return letGo("L", q / 0.15);
         if (q < 0.72) return { ...hop(H, top, ease((q - 0.15) / 0.57), 150), pose: "jump" };
         return dive(top, portraitPt(0.7), (q - 0.72) / 0.28);
       },
@@ -288,18 +300,22 @@
     { // Trust the logs → fire at the top-right corner → swing out
       dur: 1300,
       sfx: [[0.12, "pew", "flash"], [0.5, "whoosh"]],
-      fn(q) {
+      fn(q, now) {
         const P = nodePt(4);
+        if (!G.wide) return q < 0.12 ? { ...P, pose: "idle", shadow: true } : jetTo(P, perch("R"), (q - 0.12) / 0.88, "lv2", now, 1, HOVER);
         if (q < 0.12) return { ...P, pose: "aim", shadow: true };
-        if (q < 0.5) return ropeOnly(fire("R", P, (q - 0.12) / 0.38));
-        return ropeOnly(swingOut("R", P, (q - 0.5) / 0.5));
+        if (q < 0.5) return fire("R", P, (q - 0.12) / 0.38);
+        return swingOut("R", P, (q - 0.5) / 0.5);
       },
     },
     { // zip-line from the right rope across to the Journey stage, then drop in
       dur: 1350,
       sfx: [[0.05, "pew", "flash"], [0.3, "zip"], [0.82, "whoosh"]],
-      fn(q) {
-        if (!G.wide) return HIDE;
+      fn(q, now) {
+        if (!G.wide) {
+          const end = stageNow(0.6), above = { x: end.x, y: end.y - 40 };
+          return q < 0.8 ? jetTo(perch("R"), above, q / 0.8, "lv2", now, HOVER, 1) : dive(above, end, (q - 0.8) / 0.2);
+        }
         const H = hangAt("R"), Z = stagePinned(0), A = anchor("R");
         const Zhook = { x: Z.x, y: Z.y - 40 }; // the hook bites just above the stage
         const muzzle = grip(H, "aim", true);
@@ -330,17 +346,18 @@
       fn(q, now) {
         const edge = lootEdge();
         if (q < 0.35) return { ...mix(lootSpot(), edge, ease(q / 0.35)), pose: "walk", frame: now / 110, form: "rich", coins: true, shadow: true };
-        if (q < 0.6) return { ...ropeOnly(fire("L", edge, (q - 0.35) / 0.25, "rich")), coins: true };
-        return { ...ropeOnly(swingOut("L", edge, (q - 0.6) / 0.4, "rich")), coins: true };
+        if (!G.wide) return { ...jetTo(edge, perch("L"), (q - 0.35) / 0.65, "rich", now, 1, HOVER), coins: true };
+        if (q < 0.6) return { ...fire("L", edge, (q - 0.35) / 0.25, "rich"), coins: true };
+        return { ...swingOut("L", edge, (q - 0.6) / 0.4, "rich"), coins: true };
       },
     },
     { // let go → a flailing leap onto the garden → a flop into the bed
       dur: 1150,
       sfx: [[0.1, "jump"], [0.55, "thud", "dust"], [0.99, "thud", "dust"]],
-      fn(q) {
-        if (!G.wide) return HIDE;
-        if (q < 0.1) return letGo("L", q / 0.1, "lv3");
+      fn(q, now) {
         const H = hangAt("L"), card = cardPt();
+        if (!G.wide && q < 0.55) return jetTo(perch("L"), card, q / 0.55, "lv3", now, HOVER, 1);
+        if (q < 0.1) return letGo("L", q / 0.1, "lv3");
         if (q < 0.55) { const u = (q - 0.1) / 0.45; return { ...hop(H, card, ease(u), 130), pose: "jump", form: "lv3", rot: Math.sin(u * Math.PI * 3) * 0.4 }; }
         const u = (q - 0.55) / 0.45;
         return { ...hop(card, soilPt(), ease(u), 40), pose: u > 0.96 ? "idle" : "jump", form: "lv3", size: lerp(1, G_SCALE / G.scale, u) };
@@ -349,19 +366,20 @@
     { // from wherever he's got to in the garden → fire at the top-right → swing out
       dur: 1300,
       sfx: [[0.1, "pew", "flash"], [0.5, "whoosh"]],
-      fn(q) {
+      fn(q, now) {
         const P = gardenerPt();
-        if (q < 0.45) return ropeOnly(fire("R", P, q / 0.45, "lv3"));
-        return ropeOnly(swingOut("R", P, (q - 0.45) / 0.55, "lv3"));
+        if (!G.wide) return jetTo(P, perch("R"), q, "lv3", now, 1, HOVER);
+        if (q < 0.45) return fire("R", P, q / 0.45, "lv3");
+        return swingOut("R", P, (q - 0.45) / 0.55, "lv3");
       },
     },
     { // let go → down into the night → land on my log by the fire
       dur: 1100,
       sfx: [[0.12, "jump"], [0.99, "thud", "dust"]],
-      fn(q) {
-        if (!G.wide) return HIDE;
-        if (q < 0.12) return letGo("R", q / 0.12, "lv3");
+      fn(q, now) {
         const end = SEAT_SCALE / G.scale, u = (q - 0.12) / 0.88;
+        if (!G.wide) return q < 0.95 ? jetTo(perch("R"), seatPt(), q / 0.95, "lv3", now, HOVER, end) : { ...seatPt(), pose: "sit", form: "lv3", size: end };
+        if (q < 0.12) return letGo("R", q / 0.12, "lv3");
         if (u < 0.95) return { ...hop(hangAt("R"), seatPt(), ease(u), 170), pose: "jump", form: "lv3", flip: true, size: lerp(1, end, u) };
         return { ...seatPt(), pose: "sit", form: "lv3", size: end };
       },
@@ -373,7 +391,7 @@
   function restPoint(k) {
     const n = STATIONS[k].name;
     if (n === "hero") return heroPt();
-    if (n.startsWith("rope")) return hangAt(n[4]);
+    if (n.startsWith("rope")) return G.wide ? hangAt(n[4]) : perch(n[4]);
     if (n === "rpg") return portraitPt(0.75);
     if (n.startsWith("stop")) return nodePt(+n[4]);
     if (n === "stage") return stageNow(0.9);
@@ -386,15 +404,16 @@
   // a drop into the scene. Returns null once he's landed (the station's own pose takes over).
   function flight(now, dt, moving) {
     const f = G.fly, K = Math.floor(G.P + 1e-6), name = STATIONS[K].name, goal = restPoint(K); // the next station up, not the one he left
-    const kind = /^(hero|stop|loot)/.test(name) ? "ground" : name.startsWith("rope") && G.wide ? "rope" : "dock";
+    const kind = /^(hero|stop|loot)/.test(name) ? "ground" : name.startsWith("rope") ? (G.wide ? "rope" : "hover") : "dock";
     if (!f.landing) {
       const dx = goal.x - f.x, dy = goal.y - f.y, d = Math.hypot(dx, dy);
       const step = Math.min(d, Math.max(260, d * 7) * dt);
       if (d > 0.5) { f.x += (dx / d) * step; f.y += (dy / d) * step; }
       if (!moving && G.P === K && d < 10) { f.landing = { t0: now }; if (kind === "rope") Sound.pew(); }
-      return { x: f.x, y: f.y, pose: "idle", frame: now / 300, rot: clamp(dx / 900, -0.25, 0.25), jet: 1 };
+      return { x: f.x, y: f.y, pose: "idle", frame: now / 300, rot: clamp(dx / 900, -0.25, 0.25), jet: 1, size: kind === "hover" ? lerp(HOVER, 1, clamp(d / 300)) : 1 };
     }
     const u = (now - f.landing.t0) / 1000;
+    if (kind === "hover") { G.fly = null; return null; } // already in the air: nothing to land
     if (kind === "ground" && u < 0.35) return { ...goal, y: goal.y - 12 * (1 - ease(u / 0.35)), pose: "idle", frame: now / 300, jet: 1 - u / 0.35 };
     if (kind === "rope" && u < 0.45) return { ...fire(name[4], goal, u / 0.45), jet: 0.6 };
     if (kind === "dock" && u < 0.4) return { ...dive({ x: goal.x, y: goal.y - 36 }, goal, u / 0.4), jet: 1 - u / 0.4 };
@@ -518,8 +537,13 @@
     if (!moving && T % 1 > 0.001) want = G.dir < 0 ? Math.floor(T) : Math.ceil(T);
     else if (G.dir > 0 && G.P > T && G.P - T < 1) want = G.P;
     else if (G.dir < 0 && G.P < T && T - G.P < 1) want = G.P;
-    // he waters the whole bed before he swings off (unless a link sends him a long way at once)
-    G.gardenHold = want > IDX.garden && G.P <= IDX.garden && G.P > IDX.garden - 1.5 && want - G.P < 2.5 && gardener.state !== "done";
+    // he waters the whole bed before he swings off (unless a link sends him a long way at once). If you've
+    // already scrolled past the garden, nobody would see him watering it: the bed is simply watered and he
+    // comes straight on, rather than leaving the campfire empty while he works out of sight.
+    const pastGarden = want > IDX.garden && G.P > IDX.garden - 1.5 && G.P <= IDX.garden;
+    const bed = box(EL.gardenCard);
+    if (pastGarden && (bed.top > innerHeight || bed.top + bed.h < 0)) gardener.finish();
+    G.gardenHold = pastGarden && want - G.P < 2.5 && gardener.state !== "done";
     if (G.gardenHold) want = IDX.garden;
     // ...and he stays on the Journey stage until its last scene has played
     const journeyLeft = seen.get(stage.el) && stage.shown >= 0 && (stage.shown < S.journey.length - 1 || stage.p < 0.99);
@@ -549,6 +573,7 @@
         const q0 = Math.max(0, prevP - m), q1 = Math.min(1, G.P - m);
         for (const [t, sound, effect] of MOVES[m].sfx) {
           if (!(q0 < t && q1 >= t)) continue;
+          if (!G.wide && (sound === "pew" || sound === "zip")) continue; // no rope to fire on a narrow screen
           Sound[sound]?.();
           if (effect === "dust" && st.show !== false) burst("dust", st, 7);
           if (effect === "flash" && st.line) burst("flash", st.line[0], 6);
@@ -584,7 +609,7 @@
     }
     drawFx(dt);
     G.last = st;
-    if (st.show === false) { G.say.className = "guide-say"; G.ghosts.length = 0; return; }
+    if (st.show === false) { if (G.say.className !== "guide-say") G.say.className = "guide-say"; G.ghosts.length = 0; return; }
 
     const scale = G.scale * (st.size ?? 1) * G.size;
     const form = st.form || (G.cur > IDX.stage || (G.move && G.move.idx >= IDX.stage) ? "lv3" : "lv2");
@@ -635,11 +660,13 @@
     if (say) {
       if (think) { if (G.say.textContent !== think) G.say.textContent = think; }
       else words(G.say, st.say);
-      G.say.className = `guide-say on${think ? " cloud" : ""}`;
+      const cls = `guide-say on${think ? " cloud" : ""}`;
+      if (G.say.className !== cls) G.say.className = cls;
       const w = G.say.offsetWidth, h = G.say.offsetHeight;
       const left = think ? clamp(st.x - w / 2, 8, innerWidth - w - 8) : st.x > innerWidth / 2 ? st.x - w - 30 : st.x + 30;
-      G.say.style.transform = `translate(${Math.round(left)}px, ${Math.round(st.y - 33 * scale - h - (think ? 18 : -10))}px)`;
-    } else G.say.className = "guide-say";
+      const at = `translate(${Math.round(left)}px, ${Math.round(st.y - 33 * scale - h - (think ? 18 : -10))}px)`;
+      if (G.sayAt !== at) G.say.style.transform = G.sayAt = at;
+    } else if (G.say.className !== "guide-say") G.say.className = "guide-say";
   }
 
   /* ---------- Minimum hand-holding: my workshop. Whoever's asking walks in with a task for the quest board ---------- */
@@ -1379,7 +1406,7 @@
   const footer = { el: watch(EL.footer), sky: $("#footer-sky"), stars: [], shoot: null, nextShoot: 0 };
   function layoutFooter() {
     const r = EL.footer.getBoundingClientRect();
-    footer.c = sized(footer.sky, r.width, r.height);
+    footer.c = sized(footer.sky, r.width, r.height, TOUCH ? 1 : dpr()); // only square stars: 1x is plenty
     footer.stars = [...Array(Math.round(r.width / 22))].map(() => ({
       x: Math.random() * r.width, y: Math.random() * r.height * 0.45, s: Math.random() < 0.2 ? 2 : 1, ph: Math.random() * 6.3,
     }));
@@ -1416,7 +1443,7 @@
     layoutCampCrew();
     layoutFooter();
   }
-  addEventListener("resize", layout);
+  onResize(layout); // (not for the toolbar sliding in and out: that would clear every canvas mid-scroll)
   layout();
   document.fonts?.ready.then(layout); // canvases with words redraw once the pixel font is in
   let last = performance.now();
